@@ -7,7 +7,7 @@ close all; clc;
 %%
 filename = '../data.csv';
 
-fid = fopen(filename); 
+fid = fopen(filename);
 T = textscan(fid, '%f,%f');
 fclose(fid);
 
