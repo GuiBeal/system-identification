@@ -2,6 +2,16 @@ import pysid
 import pandas as pd
 import control
 
+def transferFunction(num, den):
+  z = control.TransferFunction.z
+  num_z = 0
+  den_z = 0
+  for i, n in enumerate(num):
+    num_z += n * z**(-i)
+  for i, d in enumerate(den):
+    den_z += d * z**(-i)
+  return control.minreal(num_z/den_z)
+
 def models_frame():
   return pd.DataFrame(columns=['model', 'na', 'nb', 'nc', 'nd', 'nf', 'nk', 'A', 'B', 'C', 'D', 'F', 'G', 'H'])
 
@@ -17,8 +27,8 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
         A = id.A[0][0]
         B = id.B[0][0]
 
-        G = control.TransferFunction(B, A, dt=True)
-        H = control.TransferFunction(1, A, dt=True)
+        G = transferFunction(B, A)
+        H = transferFunction([1], A)
 
         models = pd.concat([models, pd.DataFrame({
           'model': 'arx',
@@ -47,8 +57,8 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
           B = id.B[0][0]
           C = id.C[0]
 
-          G = control.TransferFunction(B, A, dt=True)
-          H = control.TransferFunction(C, A, dt=True)
+          G = transferFunction(B, A)
+          H = transferFunction(C, A)
 
           models = pd.concat([models, pd.DataFrame({
             'model': 'armax',
@@ -77,8 +87,8 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
         B = id.B[0][0]
         F = id.F[0][0]
 
-        G = control.TransferFunction(B, F, dt=True)
-        H = control.TransferFunction(1, 1, dt=True)
+        G = transferFunction(B, F)
+        H = transferFunction([1], [1])
 
         models = pd.concat([models, pd.DataFrame({
           'model': 'oe',
@@ -110,8 +120,8 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               D = id.D[0]
               F = id.F[0][0]
 
-              G = control.TransferFunction(B, F, dt=True)
-              H = control.TransferFunction(C, D, dt=True)
+              G = transferFunction(B, F)
+              H = transferFunction(C, D)
 
               models = pd.concat([models, pd.DataFrame({
                 'model': 'bj',
