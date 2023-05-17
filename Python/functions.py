@@ -16,18 +16,21 @@ def transferFunction(num, den):
     den_z += d * z**(-i)
   return control.minreal(num_z/den_z, verbose=False)
 
-def predict(u, y, G, H, nk):
-  Lu = control.minreal(G/H,     verbose=False)
-  Ly = control.minreal(1 - 1/H, verbose=False)
+def predict(u, y, G, H):
+  L_u = control.minreal(G/H,     verbose=False)
+  L_y = control.minreal(1 - 1/H, verbose=False)
 
-  y_u = control.forced_response(sys=Lu, U=u, return_x=False)
-  y_y = control.forced_response(sys=Ly, U=y, return_x=False)
-  assert(len(y_u[1]) == len(y_y[1]))
+  delay = int(max(len(L_u.den[0][0]), len(L_y.den[0][0])) - 1)
+  assert(delay >= 1)
 
-  return y_u[1][nk:] + y_y[1][nk:]
+  y_u = control.forced_response(sys=L_u, U=u, return_x=False)[1]
+  y_y = control.forced_response(sys=L_y, U=y, return_x=False)[1]
+  assert(len(y_u) == len(y_y))
+
+  return y_u[delay:] + y_y[delay:], delay
 
 def models_frame():
-  return pd.DataFrame(columns=['model', 'na', 'nb', 'nc', 'nd', 'nf', 'nk', 'A', 'B', 'C', 'D', 'F', 'G', 'H', 'yp', 'Jp'])
+  return pd.DataFrame(columns=['model', 'na', 'nb', 'nc', 'nd', 'nf', 'nk', 'A', 'B', 'C', 'D', 'F', 'G', 'H', 'yp', 'Jp', 'delay'])
 
 def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
   models = pd.DataFrame()
@@ -43,8 +46,8 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
         G = transferFunction(B, A)
         H = transferFunction([1], A)
 
-        y_p = predict(u_v, y_v, G, H, nk)
-        J_p = mean_squared_error(y_v[nk:], y_p)
+        y_p, delay = predict(u_v, y_v, G, H)
+        J_p = mean_squared_error(y_v[delay:], y_p)
 
         models = pd.concat([models, pd.DataFrame({
           'model': 'arx',
@@ -57,6 +60,7 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
           'H': [H],
           'yp': [y_p],
           'Jp': [J_p],
+          'delay': [delay],
         })])
 
   return models
@@ -78,8 +82,8 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
           G = transferFunction(B, A)
           H = transferFunction(C, A)
 
-          y_p = predict(u_v, y_v, G, H, nk)
-          J_p = mean_squared_error(y_v[nk:], y_p)
+          y_p, delay = predict(u_v, y_v, G, H)
+          J_p = mean_squared_error(y_v[delay:], y_p)
 
           models = pd.concat([models, pd.DataFrame({
             'model': 'armax',
@@ -94,6 +98,7 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
             'H': [H],
             'yp': [y_p],
             'Jp': [J_p],
+            'delay': [delay],
           })])
 
   return models
@@ -112,8 +117,8 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
         G = transferFunction(B, F)
         H = transferFunction([1], [1])
 
-        y_p = predict(u_v, y_v, G, H, nk)
-        J_p = mean_squared_error(y_v[nk:], y_p)
+        y_p, delay = predict(u_v, y_v, G, H)
+        J_p = mean_squared_error(y_v[delay:], y_p)
 
         models = pd.concat([models, pd.DataFrame({
           'model': 'oe',
@@ -126,6 +131,7 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
           'H': [H],
           'yp': [y_p],
           'Jp': [J_p],
+          'delay': [delay],
         })])
 
   return models
@@ -151,8 +157,8 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               G = transferFunction(B, F)
               H = transferFunction(C, D)
 
-              y_p = predict(u_v, y_v, G, H, nk)
-              J_p = mean_squared_error(y_v[nk:], y_p)
+              y_p, delay = predict(u_v, y_v, G, H)
+              J_p = mean_squared_error(y_v[delay:], y_p)
 
               models = pd.concat([models, pd.DataFrame({
                 'model': 'bj',
@@ -169,6 +175,7 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
                 'H': [H],
                 'yp': [y_p],
                 'Jp': [J_p],
+                'delay': [delay]
               })])
             except Exception as e:
               # display(str(e))
