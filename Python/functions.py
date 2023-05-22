@@ -30,7 +30,7 @@ def predict(u, y, G, H):
   return y_u[delay:] + y_y[delay:], delay
 
 def models_frame():
-  return pd.DataFrame(columns=['model', 'na', 'nb', 'nc', 'nd', 'nf', 'nk', 'A', 'B', 'C', 'D', 'F', 'G', 'H', 'yp', 'Jp', 'delay'])
+  return pd.DataFrame(columns=['model','na','nb','nc','nd','nf','nk','Jp','A','B','C','D','F','G','H','zG','pG','kG','zH','pH','kH','yp','delay'])
 
 def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
   models = pd.DataFrame()
@@ -57,7 +57,13 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
           'A': [A],
           'B': [B],
           'G': [G],
+          'zG': [G.zeros()],
+          'pG': [G.poles()],
+          'kG': [G.dcgain()],
           'H': [H],
+          'zH': [H.zeros()],
+          'pH': [H.poles()],
+          'kH': [H.dcgain()],
           'yp': [y_p],
           'Jp': [J_p],
           'delay': [delay],
@@ -95,7 +101,13 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
             'B': [B],
             'C': [C],
             'G': [G],
+            'zG': [G.zeros()],
+            'pG': [G.poles()],
+            'kG': [G.dcgain()],
             'H': [H],
+            'zH': [H.zeros()],
+            'pH': [H.poles()],
+            'kH': [H.dcgain()],
             'yp': [y_p],
             'Jp': [J_p],
             'delay': [delay],
@@ -128,7 +140,13 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
           'B': [B],
           'F': [F],
           'G': [G],
+          'zG': [G.zeros()],
+          'pG': [G.poles()],
+          'kG': [G.dcgain()],
           'H': [H],
+          'zH': [H.zeros()],
+          'pH': [H.poles()],
+          'kH': [H.dcgain()],
           'yp': [y_p],
           'Jp': [J_p],
           'delay': [delay],
@@ -172,7 +190,13 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
                 'D': [D],
                 'F': [F],
                 'G': [G],
+                'zG': [G.zeros()],
+                'pG': [G.poles()],
+                'kG': [G.dcgain()],
                 'H': [H],
+                'zH': [H.zeros()],
+                'pH': [H.poles()],
+                'kH': [H.dcgain()],
                 'yp': [y_p],
                 'Jp': [J_p],
                 'delay': [delay]
