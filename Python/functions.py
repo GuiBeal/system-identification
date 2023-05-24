@@ -30,7 +30,7 @@ def predict(u, y, G, H):
   return y_u[delay:] + y_y[delay:], delay
 
 def models_frame():
-  return pd.DataFrame(columns=['model','na','nb','nc','nd','nf','nk','Jp','A','B','C','D','F','G','H','zG','pG','kG','zH','pH','kH','yp','delay'])
+  return pd.DataFrame(columns=['model','na','nb','nc','nd','nf','nk','Ji','Jv','A','B','C','D','F','G','H','zG','pG','kG','zH','pH','kH','yp','delay'])
 
 def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
   models = pd.DataFrame()
@@ -46,8 +46,12 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
         G = transferFunction(B, A)
         H = transferFunction([1], A)
 
-        y_p, delay = predict(u_v, y_v, G, H)
-        J_p = mean_squared_error(y_v[delay:], y_p)
+        y_p_i, delay_i = predict(u_i, y_i, G, H)
+        y_p_v, delay_v = predict(u_v, y_v, G, H)
+        assert(delay_i == delay_v)
+
+        J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
+        J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
         models = pd.concat([models, pd.DataFrame({
           'model': 'arx',
@@ -64,9 +68,10 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
           'zH': [H.zeros()],
           'pH': [H.poles()],
           'kH': [H.dcgain()],
-          'yp': [y_p],
-          'Jp': [J_p],
-          'delay': [delay],
+          'yp': [y_p_v],
+          'Jv': [J_p_v],
+          'Ji': [J_p_i],
+          'delay': [delay_v],
         })])
 
   return models
@@ -88,8 +93,12 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
           G = transferFunction(B, A)
           H = transferFunction(C, A)
 
-          y_p, delay = predict(u_v, y_v, G, H)
-          J_p = mean_squared_error(y_v[delay:], y_p)
+          y_p_i, delay_i = predict(u_i, y_i, G, H)
+          y_p_v, delay_v = predict(u_v, y_v, G, H)
+          assert(delay_i == delay_v)
+
+          J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
+          J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
           models = pd.concat([models, pd.DataFrame({
             'model': 'armax',
@@ -108,9 +117,10 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
             'zH': [H.zeros()],
             'pH': [H.poles()],
             'kH': [H.dcgain()],
-            'yp': [y_p],
-            'Jp': [J_p],
-            'delay': [delay],
+            'yp': [y_p_v],
+            'Jv': [J_p_v],
+            'Ji': [J_p_i],
+            'delay': [delay_v],
           })])
 
   return models
@@ -129,8 +139,12 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
         G = transferFunction(B, F)
         H = transferFunction([1], [1])
 
-        y_p, delay = predict(u_v, y_v, G, H)
-        J_p = mean_squared_error(y_v[delay:], y_p)
+        y_p_i, delay_i = predict(u_i, y_i, G, H)
+        y_p_v, delay_v = predict(u_v, y_v, G, H)
+        assert(delay_i == delay_v)
+
+        J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
+        J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
         models = pd.concat([models, pd.DataFrame({
           'model': 'oe',
@@ -147,9 +161,10 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
           'zH': [H.zeros()],
           'pH': [H.poles()],
           'kH': [H.dcgain()],
-          'yp': [y_p],
-          'Jp': [J_p],
-          'delay': [delay],
+          'yp': [y_p_v],
+          'Jv': [J_p_v],
+          'Ji': [J_p_i],
+          'delay': [delay_v],
         })])
 
   return models
@@ -175,8 +190,12 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               G = transferFunction(B, F)
               H = transferFunction(C, D)
 
-              y_p, delay = predict(u_v, y_v, G, H)
-              J_p = mean_squared_error(y_v[delay:], y_p)
+              y_p_i, delay_i = predict(u_i, y_i, G, H)
+              y_p_v, delay_v = predict(u_v, y_v, G, H)
+              assert(delay_i == delay_v)
+
+              J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
+              J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
               models = pd.concat([models, pd.DataFrame({
                 'model': 'bj',
@@ -197,9 +216,10 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
                 'zH': [H.zeros()],
                 'pH': [H.poles()],
                 'kH': [H.dcgain()],
-                'yp': [y_p],
-                'Jp': [J_p],
-                'delay': [delay]
+                'yp': [y_p_v],
+                'Jv': [J_p_v],
+                'Ji': [J_p_i],
+                'delay': [delay_v],
               })])
             except Exception as e:
               # display(str(e))
@@ -213,3 +233,14 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               })])
 
   return models
+
+def display_models(df, columns, precision, qty):
+  df = df.copy() # probably unnecessary, but safety first
+
+  with np.printoptions(precision=precision):
+    for collumn in ['A', 'B', 'C', 'D', 'F', 'zG', 'pG', 'zH', 'pH']:
+      if collumn in df:
+        df[collumn] = df[collumn].astype(str)
+
+  with pd.option_context('display.precision', precision):
+    display(df[columns].fillna('-').head(qty))
