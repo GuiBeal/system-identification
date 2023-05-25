@@ -54,7 +54,7 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
         J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
         models = pd.concat([models, pd.DataFrame({
-          'model': 'arx',
+          'model': 'ARX',
           'na': [na],
           'nb': [nb],
           'nk': [nk],
@@ -101,7 +101,7 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
           J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
           models = pd.concat([models, pd.DataFrame({
-            'model': 'armax',
+            'model': 'ARMAX',
             'na': [na],
             'nb': [nb],
             'nc': [nc],
@@ -147,7 +147,7 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
         J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
         models = pd.concat([models, pd.DataFrame({
-          'model': 'oe',
+          'model': 'OE',
           'nb': [nb],
           'nf': [nf],
           'nk': [nk],
@@ -198,7 +198,7 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
               models = pd.concat([models, pd.DataFrame({
-                'model': 'bj',
+                'model': 'BJ',
                 'nb': [nb],
                 'nc': [nc],
                 'nd': [nd],
