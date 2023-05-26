@@ -29,8 +29,21 @@ def predict(u, y, G, H):
 
   return y_u[delay:] + y_y[delay:], delay
 
+def akaike(N, mse, m):
+  aic = N*np.log(mse) + 2*m
+  aic_c = aic + (2*m*(m+1))/(N - m - 1)
+  return aic, aic_c
+
 def models_frame():
-  return pd.DataFrame(columns=['model','na','nb','nc','nd','nf','nk','Ji','Jv','A','B','C','D','F','G','H','zG','pG','kG','zH','pH','kH','yp','delay'])
+  return pd.DataFrame(columns=[
+    'model',
+    'na','nb','nc','nd','nf','nk',
+    'Ji','Jv',
+    'AICi','AICCi','AICv','AICCv',
+    'A','B','C','D','F',
+    'G','H','zG','pG','kG','zH','pH','kH',
+    'yp','delay',
+  ])
 
 def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
   models = pd.DataFrame()
@@ -53,6 +66,9 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
         J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
         J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
+        aic_i, aicc_i = akaike(len(u_i), J_p_i, na + nb + 1)
+        aic_v, aicc_v = akaike(len(u_v), J_p_v, na + nb + 1)
+
         models = pd.concat([models, pd.DataFrame({
           'model': 'ARX',
           'na': [na],
@@ -69,8 +85,12 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
           'pH': [H.poles()],
           'kH': [H.dcgain()],
           'yp': [y_p_v],
-          'Jv': [J_p_v],
           'Ji': [J_p_i],
+          'Jv': [J_p_v],
+          'AICi': [aic_i],
+          'AICCi': [aicc_i],
+          'AICv': [aic_v],
+          'AICCv': [aicc_v],
           'delay': [delay_v],
         })])
 
@@ -100,6 +120,9 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
           J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
           J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
+          aic_i, aicc_i = akaike(len(u_i), J_p_i, na + nb + 1 + nc)
+          aic_v, aicc_v = akaike(len(u_v), J_p_v, na + nb + 1 + nc)
+
           models = pd.concat([models, pd.DataFrame({
             'model': 'ARMAX',
             'na': [na],
@@ -118,8 +141,12 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
             'pH': [H.poles()],
             'kH': [H.dcgain()],
             'yp': [y_p_v],
-            'Jv': [J_p_v],
             'Ji': [J_p_i],
+            'Jv': [J_p_v],
+            'AICi': [aic_i],
+            'AICCi': [aicc_i],
+            'AICv': [aic_v],
+            'AICCv': [aicc_v],
             'delay': [delay_v],
           })])
 
@@ -146,6 +173,9 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
         J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
         J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
+        aic_i, aicc_i = akaike(len(u_i), J_p_i, nb + 1 + nf)
+        aic_v, aicc_v = akaike(len(u_v), J_p_v, nb + 1 + nf)
+
         models = pd.concat([models, pd.DataFrame({
           'model': 'OE',
           'nb': [nb],
@@ -162,8 +192,12 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
           'pH': [H.poles()],
           'kH': [H.dcgain()],
           'yp': [y_p_v],
-          'Jv': [J_p_v],
           'Ji': [J_p_i],
+          'Jv': [J_p_v],
+          'AICi': [aic_i],
+          'AICCi': [aicc_i],
+          'AICv': [aic_v],
+          'AICCv': [aicc_v],
           'delay': [delay_v],
         })])
 
@@ -197,6 +231,9 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               J_p_i = mean_squared_error(y_i[delay_i:], y_p_i)
               J_p_v = mean_squared_error(y_v[delay_v:], y_p_v)
 
+              aic_i, aicc_i = akaike(len(u_i), J_p_i, nb + 1 + nc + nd + nf)
+              aic_v, aicc_v = akaike(len(u_v), J_p_v, nb + 1 + nc + nd + nf)
+
               models = pd.concat([models, pd.DataFrame({
                 'model': 'BJ',
                 'nb': [nb],
@@ -217,8 +254,12 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
                 'pH': [H.poles()],
                 'kH': [H.dcgain()],
                 'yp': [y_p_v],
-                'Jv': [J_p_v],
                 'Ji': [J_p_i],
+                'Jv': [J_p_v],
+                'AICi': [aic_i],
+                'AICCi': [aicc_i],
+                'AICv': [aic_v],
+                'AICCv': [aicc_v],
                 'delay': [delay_v],
               })])
             except Exception as e:
