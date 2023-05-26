@@ -1,7 +1,8 @@
-**/build/
-!**/build/*.pdf
-**/*-eps-converted-to.pdf
-**/temp/
+**/build/*
+**/temp/*
+
+!LaTeX**/build/*.pdf
+LaTeX/**/*-eps-converted-to.pdf
 
 MathWorks/**/*.asv
 MathWorks/**/*.autosave
