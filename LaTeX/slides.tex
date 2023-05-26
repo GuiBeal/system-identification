@@ -1,0 +1,49 @@
+\documentclass{beamer}
+
+\usepackage{standalone}
+\usepackage{wrapfig}
+\usepackage{Figure}
+\usepackage{Math}
+\usepackage{icomma}
+\usepackage[warningthreshold=0.1]{resizegather}
+\usepackage{Drawing}
+
+% \graphicspath{{../../../MathWorks/ELE223_Sistemas_Lineares_A/Trabalho/fig/}}
+
+\usefonttheme[onlymath]{serif}
+
+\addtobeamertemplate{navigation symbols}{}{
+  \usebeamerfont{footline}
+  \usebeamercolor[fg]{footline}
+  \hspace{1em}
+  \raisebox{1.4pt}[0pt][0pt]{\insertframenumber/\inserttotalframenumber}
+}
+
+\renewcommand{\Prod}{\,}
+
+\title{Identificação de Sistema Linear por Erro de Predição}
+\author{Guilherme de Paoli Beal}
+\institute{
+  Universidade Federal do Rio Grande do Sul
+  \\
+  Programa de Pós-Graduação em Engenharia Elétrica
+  \\
+  Aprendizado Supervisionado de Modelos Paramétricos
+}
+\date{Maio de 2023}
+
+\begin{document}
+
+{
+\setbeamertemplate{navigation symbols}{}
+\begin{frame}[noframenumbering,label={frame:title}]
+  \titlepage
+\end{frame}
+}
+
+{
+\setbeamertemplate{navigation symbols}{}
+\againframe[noframenumbering]{frame:title}
+}
+
+\end{document}
