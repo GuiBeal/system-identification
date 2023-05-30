@@ -92,7 +92,7 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
           'AICv': [aic_v],
           'AICCv': [aicc_v],
           'delay': [delay_v],
-        })])
+        })], ignore_index=True)
 
   return models
 
@@ -148,7 +148,7 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
             'AICv': [aic_v],
             'AICCv': [aicc_v],
             'delay': [delay_v],
-          })])
+          })], ignore_index=True)
 
   return models
 
@@ -199,7 +199,7 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
           'AICv': [aic_v],
           'AICCv': [aicc_v],
           'delay': [delay_v],
-        })])
+        })], ignore_index=True)
 
   return models
 
@@ -271,7 +271,7 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
                 'nd': [nd],
                 'nf': [nf],
                 'nk': [nk],
-              })])
+              })], ignore_index=True)
 
   return models
 
