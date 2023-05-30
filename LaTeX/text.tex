@@ -8,16 +8,23 @@
 \sisetup{output-decimal-marker = {,}}
 \sisetup{exponent-product = {\cdot}}
 
-\usepackage{Math}
-\mathtoolsset{showonlyrefs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
 \usepackage{resizegather}
 \usepackage{icomma}
-\renewcommand{\Prod}{\,}
+\mathtoolsset{showonlyrefs}
+\newcommand{\Prod}{\,}
 
-\usepackage{Figure}
+\usepackage{graphicx}
+\usepackage{epstopdf}
 \graphicspath{{../img/}}
+\epstopdfsetup{outdir=./build/}
 
 \usepackage[inline]{enumitem}
+
+\usepackage{tabularx}
+\usepackage{booktabs}
 
 % siunitx % cspell:disable-line
 \DeclareSIUnit{\med}{med}
@@ -38,16 +45,19 @@
 \thispagestyle{empty}\pagestyle{empty}
 
 \begin{abstract}
-  Aqui vai o resumo.
+  Aqui vai o resumo. %% TODO
 \end{abstract}
 
 \begin{IEEEkeywords}
-  Identificação, Sistema Linear
+  Identificação por Erro de Predição, pysid, ARX, ARMAX, Output Error, Box-Jenkins
 \end{IEEEkeywords}
 
 \section{Introdução}
 
 %% TODO desenvolver introdução
+Este trabalho visa à aplicação de identificação de um sistema discreto, linear e invariante no tempo, através do método de erro de predição, ou \emph{Prediction Error Method} (PEM).
+Uma batelada de dados de um sistema, supostamente desconhecido, é fornecida, em que a saída está contaminada por ruído de medição.
+A identificação é realizada utilizando diferentes classes de modelo e ordens, e os resultados são comparados.
 
 As implementações são desenvolvidas em Python, versão 3.9.12.
 A identificação por erro de predição utiliza o pacote \texttt{pysid} em versão de desenvolvimento 0.1.0.
@@ -77,9 +87,9 @@ Em particular, na identificação por erro de predição, o modelo procurar cara
 
 Quatro diferentes classes de modelo são exploradas neste trabalho:
 \begin{itemize}
-  \item Autorregressivo com Entrada Externa, ou \textit{Autoregressive with Extra Input} (ARX);
-  \item Autorregressivo com Média Móvel e Entrada Externa, ou \textit{Autoregressive Moving Average with Extra Input} (ARMAX);
-  \item Erro na Saída, ou \textit{Output Error} (OE); e
+  \item Autorregressivo com Entrada Externa, ou \emph{Autoregressive with Extra Input} (ARX);
+  \item Autorregressivo com Média Móvel e Entrada Externa, ou \emph{Autoregressive Moving Average with Extra Input} (ARMAX);
+  \item Erro na Saída, ou \emph{Output Error} (OE); e
   \item Box-Jenkins (BJ).
 \end{itemize}
 Essas classes são casos particulares de um modelo mais genérico, definido por
@@ -136,6 +146,56 @@ Outrossim, se o modelo representa um sistema amostrado, então $G(q)$ deve ser e
 Ressalta-se que este modelo genérico pode apresentar definições e notações diferentes, como em \cite{book:Ljung1999, book:Aguirre2007, misc:matlab-polynomial-models}.
 A definição aqui apresentada corresponde aos formatos dos polinômios retornados pelas funções do pacote \texttt{pysid}.
 
+
+\subsection{Classes de Modelos}
+As quatro classes de modelo são obtidas fixando determinadas ordens no modelo genérico.
+
+\subsubsection{ARX}
+Neste modelo, há liberdade nas escolhas de $n_a$, $n_b$ e $n_k$, enquanto $n_c = n_d = n_f = 0$.
+Assim, as funções de transferência tornam-se
+\begin{align}
+  G(q) &= \dfrac{B(q)}{A(q)}
+  , \text{ e}
+  \\
+  H(q) &= \dfrac{1}{A(q)}
+  .
+\end{align}
+Esta classe tem a vantagem de resultar numa minimização linear nos parâmetros, os quais podem ser obtidos por mínimos quadrados.
+
+\subsubsection{ARMAX}
+Este modelo requer a arbitração das ordens $n_a$, $n_b$, $n_c$ e $n_k$, com $n_d = n_f = 0$.
+Portanto, as funções de transferência são
+\begin{align}
+  G(q) &= \dfrac{B(q)}{A(q)}
+  , \text{ e}
+  \\
+  H(q) &= \dfrac{C(q)}{A(q)}
+  .
+\end{align}
+
+\subsubsection{\emph{Output Error}}
+Para este modelo são escolhidas as ordens $n_b$, $n_f$ e $n_k$, fixando $n_a = n_c = n_d = 0$.
+Nesse casso, tem-se
+\begin{align}
+  G(q) &= \dfrac{B(q)}{F(q)}
+  , \text{ e}
+  \\
+  H(q) &= 1
+  .
+\end{align}
+Note que este modelo considera que o ruído de medição é ruído branco. % TODO nomenclatura
+
+\subsubsection{Box-Jenkins}
+Finalmente, neste modelo arbitra-se $n_b$, $n_c$, $n_d$, $n_f$ e $n_k$, com $n_a = 0$.
+Com isso, obtém-se
+\begin{align}
+  G(q) &= \dfrac{B(q)}{F(q)}
+  , \text{ e}
+  \\
+  H(q) &= \dfrac{C(q)}{F(q)}
+  .
+\end{align}
+
 \subsection{Predição}
 
 A predição é realizada aplicando
@@ -161,92 +221,199 @@ O erro de predição é definido como
 \end{equation}
 Assim, o erro quadrático médio de predição é definido por
 \begin{equation}\label{eq:mse}
-  J = \dfrac{1}{N} \Prod \Sum{t=1}{N}{\Round{\varepsilon(t)}^2}
-  .
+  J = \dfrac{1}{N} \Prod \sum_{t=1}^{N}{\left(\varepsilon(t)\right)^2}
+  ,
 \end{equation}
+em que $N$ é o número de amostras preditas.
 
 \subsection{Identificação}
 A identificação por erro de predição visa, a partir de um conjunto de dados de entrada $u(t)$ e de saída $y(t)$ medidos do processo, a identificar os parâmetros dos polinômios do modelo de forma a minimizar o custo expresso em \eqref{eq:mse}.
 O algoritmo aplicado neste processo depende da classe do modelo e está fora do escopo deste trabalho.
 Estes são implementados pelo pacote \texttt{pysid}.
 
-\subsection{Classes de Modelos}
+\section{Critério de Informação de Akaike}
 
-\subsubsection{ARX}
-No modelo ARX há liberdade nas escolhas de $n_a$, $n_b$ e $n_k$, enquanto $n_c = n_d = n_f = 0$.
-Assim, as funções de transferência tornam-se
-\begin{align}
-  G(q) &= \dfrac{B(q)}{A(q)}
-  , \text{ e}
-  \\
-  H(q) &= \dfrac{1}{A(q)}
-  .
-\end{align}
-Esta classe tem a vantagem de resultar numa minimização linear nos parâmetros, os quais podem ser obtidos por mínimos quadrados.
+Para avaliar a qualidade dos modelos identificados será utilizado o critério de informação de Akaike, ou \emph{Akaike Information Criterion} (AIC).
+Este critério pondera a qualidade de predição junto à ordem do modelo, penalizando critérios de maior ordem.
+Considerando o erro de predição, o critério é definido por
+\begin{equation}
+  \text{AIC} = N \Prod \log\left(J\right) + 2 \Prod k
+  ,
+\end{equation}
+em que $N$ é o número de amostras preditas, $k$ é o número de parâmetros do modelo e $J$ é o erro médio quadrático de predição definido em \eqref{eq:mse} \cite{book:Soderstrom1989}.
 
-\subsubsection{ARMAX}
-O modelo ARMAX requer a arbitração das ordens $n_a$, $n_b$, $n_c$ e $n_k$, com $n_d = n_f = 0$.
-Portanto, as funções de transferência são
-\begin{align}
-  G(q) &= \dfrac{B(q)}{A(q)}
-  , \text{ e}
-  \\
-  H(q) &= \dfrac{C(q)}{A(q)}
+Para conjuntos com poucas amostras, pode-se utilizar um critério adaptado, definido por
+\begin{equation}\label{eq:akaike-small}
+  \text{AICc} = \text{AIC} + \dfrac{2 \Prod k \Prod \left(k + 1\right)}{N - k - 1}
   .
-\end{align}
-
-\subsubsection{\emph{Output Error}}
-Para o modelo OE são escolhidas as ordens $n_b$, $n_f$ e $n_k$, fixando $n_a = n_c = n_d = 0$.
-Nesse casso, tem-se
-\begin{align}
-  G(q) &= \dfrac{B(q)}{F(q)}
-  , \text{ e}
-  \\
-  H(q) &= 1
-  .
-\end{align}
-Note que este modelo considera que o ruído de medição é ruído branco. % TODO nomenclatura
-
-\subsubsection{Box-Jenkins}
-Finalmente, no modelo BJ arbitra-se $n_b$, $n_c$, $n_d$, $n_f$ e $n_k$, com $n_a = 0$.
-Com isso, obtém-se
-\begin{align}
-  G(q) &= \dfrac{B(q)}{F(q)}
-  , \text{ e}
-  \\
-  H(q) &= \dfrac{C(q)}{F(q)}
-  .
-\end{align}
+\end{equation}
+Note que $N \to \infty \implies \text{AICc} \to \text{AIC}$ --- isto é, o critério adaptado se aproximado do critério original à medida que cresce o número de amostras considerado.
 
 \section{Dados}
 
 Os dados são apresentados na Figura \ref{fig:data}, em que o sinal $u(t)$ é multiplicado por um fator de $10$ para melhor visualização.
 Ambos os sinais $u(t)$ e $y(t)$ contêm 200 amostras.
-
+Note que a entrada $u(t)$ é similar a uma onda quadrada.
 \begin{figure}[!htbp]
   \centering
-  \includegraphics[width=\linewidth]{data}
+  \includegraphics[width=\linewidth]{data_folded}
   \caption{Dados de entrada e saída.}
   \label{fig:data}
 \end{figure}
 
+Na Figura \ref{fig:data}, a linha tracejada vertical divide os dados em dois conjuntos.
+Para a identificação dos modelos, utilizam-se os dados à esquerda desta linha, correspondentes às primeiras 160 amostras.
+As 40 amostras restantes são aplicadas na validação dos modelos identificados.
+
+A Figura \ref{fig:data_fourier} mostra o espectro de amplitude dos dados --- isto é, a magnitude da transformada de Fourier dos sinais --- em escala logarítmica.
+Note como ambos os sinais possuem um conteúdo elevado em baixas frequências, seguidos de picos pontuais que decrescem com o aumento da frequência.
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{data_fourier_log}
+  \caption{Espectro de amplitude dos dados de entrada e saída.}
+  \label{fig:data_fourier}
+\end{figure}
+
 \section{Resultados}
 
-% \subsection{ARX}
-
-% Variando $n_a \in \Set{0, 1, 2, 3}$, $n_b \in \Set{0, 1, 2, 3}$ e $n_k \in \Set{1, 2, 3}$ são obtidos XX modelos ARX.
-% A tabela
+Diversas identificações são realizadas, variando as ordens dos polinômios e o atraso entre as quatro classes de modelos.
+A Tabela \ref{tab:orders} sintetiza os intervalos de variação desses valores para cada modelo.
+% As ordens $n_a$, $n_d$ e $n_f$ variam a partir de 1.
+% Note que, no modelo ARMAX, $n_c = 0$ equivaleria ao modelo ARX; portanto, essa ordem nesse modelo varia a partir de 1.
+A fim de considerar sistemas amostrados, todos os sistemas tem atraso de pelo menos um amostra --- isto é, $n_k \geq 1$.
 
 \begin{table}[!htbp]
   \centering
-  \caption{Modelos ARX melhor classificados.}
-  \begin{tabular}{|c|c|c|c|}
-    \hline
-    \# & $n_a$ & $n_b$ & $n_k$ \\\hline\hline
-    \\\hline
-  \end{tabular}
-  \label{tab:arx}
+  \caption{Intervalo de variação das ordens dos polinômios}
+  \label{tab:orders}
+  \newcolumntype{C}{>{\centering\arraybackslash}X}
+  \setlength{\extrarowheight}{1pt}
+  \begin{tabularx}{\linewidth}{@{} c *{6}{C} c @{}}
+    \toprule
+    Classe & $n_a$    & $n_b$    & $n_c$    & $n_d$    & $n_f$    & $n_k$    & Total \\
+    \midrule
+    ARX    & $[1, 4]$ & $[0, 4]$ & --       & --       & --       & $[1, 4]$ & 80    \\
+    ARMAX  & $[1, 4]$ & $[0, 4]$ & $[1, 4]$ & --       & --       & $[1, 4]$ & 320   \\
+    OE     & --       & $[0, 4]$ & --       & --       & $[1, 4]$ & $[1, 4]$ & 80    \\
+    BJ     & --       & $[0, 4]$ & $[0, 4]$ & $[1, 4]$ & $[1, 4]$ & $[1, 4]$ & 1600  \\
+    \midrule
+    Total  &          &          &          &          &          &          & 2080  \\
+    \bottomrule
+  \end{tabularx}
 \end{table}
+
+É importante ressaltar que dentre as 1600 identificações realizadas com a classe BJ 960 apresentaram algum problema de implementação interno ao pacote \texttt{pysid}.
+Nesses casos, esses modelos foram simplesmente descartados.
+
+Para cada identificação são calculados o erro quadrático médio, conforme \eqref{eq:mse}, e o critério de informação de Akaike para pequenos conjuntos de dados, conforme \eqref{eq:akaike-small}.
+Ambos são realizados tanto para o conjunto de dados de identificação --- denotado pelo subíndice $i$ --- como para o conjunto de validação --- denotado pelo subíndice $v$.
+
+Para cada uma das quatro classes, a Tabela \ref{tab:results-class} apresenta os seis melhores modelos resultantes, com base no critério de informação de Akaike com os dados de validação.
+Os demais custos também são
+Os modelos são unicamente identificados por um índice, exibidos na primeira coluna.
+
+\begin{table*}
+  \caption{Melhores resultados por classe com base no critério $\text{AICc}_v$}
+  \label{tab:results-class}
+  \newcolumntype{C}{>{\centering\arraybackslash}X}
+  \setlength{\extrarowheight}{1pt}
+  \begin{tabularx}{\textwidth}{@{} c *{10}{C} c @{}}
+    \toprule
+    \#   & Classe & $n_a$   & $n_b$   & $n_c$   & $n_d$   & $n_f$   & $n_k$   & $\text{AICc}_v$ & $\text{AICc}_i$ & $J_v$         & $J_i$        \\
+    \midrule
+    24   & ARX    & \num{2} & \num{1} & --      & --      & --      & \num{1} & \num{79.463 }   & \num{288.142}   & \num{5.801  } & \num{5.750 } \\
+    44   & ARX    & \num{3} & \num{1} & --      & --      & --      & \num{1} & \num{80.358 }   & \num{289.971}   & \num{5.556  } & \num{5.740 } \\
+    28   & ARX    & \num{2} & \num{2} & --      & --      & --      & \num{1} & \num{80.596 }   & \num{276.503}   & \num{5.589  } & \num{5.276 } \\
+    20   & ARX    & \num{2} & \num{0} & --      & --      & --      & \num{1} & \num{80.820 }   & \num{290.423}   & \num{6.384  } & \num{5.910 } \\
+    40   & ARX    & \num{3} & \num{0} & --      & --      & --      & \num{1} & \num{81.303 }   & \num{291.572}   & \num{6.074  } & \num{5.875 } \\
+    32   & ARX    & \num{2} & \num{3} & --      & --      & --      & \num{1} & \num{82.077 }   & \num{278.289}   & \num{5.410  } & \num{5.264 } \\
+    \midrule
+    160  & ARMAX  & \num{2} & \num{0} & \num{1} & --      & --      & \num{1} & \num{82.406 }   & \num{292.387}   & \num{6.244  } & \num{5.905 } \\
+    240  & ARMAX  & \num{3} & \num{0} & \num{1} & --      & --      & \num{1} & \num{82.440 }   & \num{291.698}   & \num{5.853  } & \num{5.802 } \\
+    192  & ARMAX  & \num{2} & \num{2} & \num{1} & --      & --      & \num{1} & \num{83.302 }   & \num{278.685}   & \num{5.579  } & \num{5.277 } \\
+    144  & ARMAX  & \num{1} & \num{4} & \num{1} & --      & --      & \num{1} & \num{83.435 }   & \num{299.330}   & \num{5.199  } & \num{5.922 } \\
+    112  & ARMAX  & \num{1} & \num{2} & \num{1} & --      & --      & \num{1} & \num{83.574 }   & \num{294.450}   & \num{6.021  } & \num{5.902 } \\
+    336  & ARMAX  & \num{4} & \num{1} & \num{1} & --      & --      & \num{1} & \num{84.031 }   & \num{282.669}   & \num{5.277  } & \num{5.337 } \\
+    \midrule
+    465  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{2} & \num{203.538}   & \num{635.576}   & \num{112.710} & \num{49.103} \\
+    469  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{2} & \num{205.126}   & \num{637.238}   & \num{108.924} & \num{48.942} \\
+    466  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{3} & \num{208.209}   & \num{688.227}   & \num{126.671} & \num{68.237} \\
+    468  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{1} & \num{210.717}   & \num{620.915}   & \num{125.264} & \num{44.195} \\
+    470  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{3} & \num{211.195}   & \num{690.408}   & \num{126.771} & \num{68.234} \\
+    464  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{1} & \num{211.208}   & \num{622.115}   & \num{136.532} & \num{45.141} \\
+    \midrule
+    1136 & BJ     & --      & \num{2} & \num{0} & \num{2} & \num{1} & \num{1} & \num{82.909 }   & \num{276.778}   & \num{5.524  } & \num{5.214 } \\
+    816  & BJ     & --      & \num{1} & \num{0} & \num{2} & \num{1} & \num{1} & \num{83.040 }   & \num{273.646}   & \num{5.941  } & \num{5.183 } \\
+    832  & BJ     & --      & \num{1} & \num{0} & \num{3} & \num{1} & \num{1} & \num{84.041 }   & \num{276.120}   & \num{5.683  } & \num{5.193 } \\
+    1456 & BJ     & --      & \num{3} & \num{0} & \num{2} & \num{1} & \num{1} & \num{84.939 }   & \num{277.505}   & \num{5.398  } & \num{5.167 } \\
+    1140 & BJ     & --      & \num{2} & \num{0} & \num{2} & \num{2} & \num{1} & \num{85.844 }   & \num{278.965}   & \num{5.521  } & \num{5.214 } \\
+    848  & BJ     & --      & \num{1} & \num{0} & \num{4} & \num{1} & \num{1} & \num{86.957 }   & \num{274.874}   & \num{5.677  } & \num{5.083 } \\
+    \bottomrule
+  \end{tabularx}
+\end{table*}
+
+Comparando a ordem de grandeza de cada critério de qualidade na Tabela \ref{tab:results-class}, nota-se que os modelos ARX, ARMAX e BJ apresentam um desempenho consideravelmente melhor que os modelos OE;
+isto é um indicativo de que o ruído de medição não é branco, conforme supõe esse último modelo.
+Além disso, para os modelos ARX, ARMAX e BJ, todos as identificações presentes na Tabela \ref{tab:results-class} têm $n_k = 1$ --- isto é, um atraso da entrada para a saída de apenas uma amostra.
+Destaca-se, ainda, que nos modelos ARMAX e BJ, constam na Tabela \ref{tab:results-class} apenas identificações com $n_c$ partindo de seu valor mínimo --- 1 para ARMAX e 0 para BJ ---, levando à interpretação de que o numerador de $H(q)$ tem ordem pequena.
+
+A Tabela \ref{tab:results} mostra as 20 melhores identificações, classificadas pelo critério de informação de Akaike adaptado com os dados de validação.
+Note a prevalência de modelos ARX, bem como das características discutidas no parágrafo anterior.
+
+\begin{table*}
+  \caption{Melhores resultados gerais com base no critério $\text{AICc}_v$}
+  \label{tab:results}
+  \newcolumntype{C}{>{\centering\arraybackslash}X}
+  \setlength{\extrarowheight}{1pt}
+  \begin{tabularx}{\textwidth}{@{} c *{10}{C} c @{}}
+    \toprule
+    \#   & Classe & $n_a$   & $n_b$   & $n_c$   & $n_d$   & $n_f$   & $n_k$   & $\text{AICc}_v$ & $\text{AICc}_i$ & $J_v$  & $J_i$       \\
+    24   & ARX    & \num{2} & \num{1} &  --     &  --       &  --   & \num{1} & \num{79.463} & \num{288.142} & \num{5.801} & \num{5.75}  \\
+    44   & ARX    & \num{3} & \num{1} &  --     &  --       &  --   & \num{1} & \num{80.358} & \num{289.971} & \num{5.556} & \num{5.74}  \\
+    28   & ARX    & \num{2} & \num{2} &  --     &  --       &  --   & \num{1} & \num{80.596} & \num{276.503} & \num{5.589} & \num{5.276} \\
+    20   & ARX    & \num{2} & \num{0} &  --     &  --       &  --   & \num{1} & \num{80.82 } & \num{290.423} & \num{6.384} & \num{5.91}  \\
+    40   & ARX    & \num{3} & \num{0} &  --     &  --       &  --   & \num{1} & \num{81.303} & \num{291.572} & \num{6.074} & \num{5.875} \\
+    32   & ARX    & \num{2} & \num{3} &  --     &  --       &  --   & \num{1} & \num{82.077} & \num{278.289} & \num{5.41 } & \num{5.264} \\
+    64   & ARX    & \num{4} & \num{1} &  --     &  --       &  --   & \num{1} & \num{82.145} & \num{288.495} & \num{5.419} & \num{5.611} \\
+    160  & ARMAX  & \num{2} & \num{0} & \num{1} &  --       &  --   & \num{1} & \num{82.406} & \num{292.387} & \num{6.244} & \num{5.905} \\
+    240  & ARMAX  & \num{3} & \num{0} & \num{1} &  --       &  --   & \num{1} & \num{82.44 } & \num{291.698} & \num{5.853} & \num{5.802} \\
+    1136 & BJ     &  --     & \num{2} & \num{0} & \num{2} & \num{1} & \num{1} & \num{82.909} & \num{276.778} & \num{5.524} & \num{5.214} \\
+    816  & BJ     &  --     & \num{1} & \num{0} & \num{2} & \num{1} & \num{1} & \num{83.04 } & \num{273.646} & \num{5.941} & \num{5.183} \\
+    36   & ARX    & \num{2} & \num{4} &  --     &  --       &  --   & \num{1} & \num{83.283} & \num{281.484} & \num{5.179} & \num{5.297} \\
+    192  & ARMAX  & \num{2} & \num{2} & \num{1} &  --       &  --   & \num{1} & \num{83.302} & \num{278.685} & \num{5.579} & \num{5.277} \\
+    60   & ARX    & \num{4} & \num{0} &  --     &  --       &  --   & \num{1} & \num{83.403} & \num{291.217} & \num{5.995} & \num{5.784} \\
+    144  & ARMAX  & \num{1} & \num{4} & \num{1} &  --       &  --   & \num{1} & \num{83.435} & \num{299.33 } & \num{5.199} & \num{5.922} \\
+    112  & ARMAX  & \num{1} & \num{2} & \num{1} &  --       &  --   & \num{1} & \num{83.574} & \num{294.45 } & \num{6.021} & \num{5.902} \\
+    48   & ARX    & \num{3} & \num{2} &  --     &  --       &  --   & \num{1} & \num{83.698} & \num{278.625} & \num{5.634} & \num{5.275} \\
+    336  & ARMAX  & \num{4} & \num{1} & \num{1} &  --       &  --   & \num{1} & \num{84.031} & \num{282.669} & \num{5.277} & \num{5.337} \\
+    832  & BJ     &  --     & \num{1} & \num{0} & \num{3} & \num{1} & \num{1} & \num{84.041} & \num{276.12 } & \num{5.683} & \num{5.193} \\
+    52   & ARX    & \num{3} & \num{3} &  --     &  --       &  --   & \num{1} & \num{84.774} & \num{280.442} & \num{5.376} & \num{5.263} \\
+    \bottomrule
+  \end{tabularx}
+\end{table*}
+
+A partir das identificações, são obtidas as funções de transferência do sistema $G(q)$ e do ruído $H(q)$.
+A fim de compará-las visualmente, as Figuras \ref{fig:bode-system} e \ref{fig:bode-noise} apresentam suas respostas em frequência, considerando as identificações na Tabela \ref{tab:results}.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{bode_G_AICCv}
+  \caption{Resposta em frequências de $G(q)$ a partir das identificações na Tabela \ref{tab:results}.}
+  \label{fig:bode-system}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{bode_H_AICCv}
+  \caption{Resposta em frequências de $H(q)$ a partir das identificações na Tabela \ref{tab:results}.}
+  \label{fig:bode-noise}
+\end{figure}
+
+Note, através da Figura \ref{fig:bode-system}, que, entre todas as identificações, o comportamento do sistema $G(q)$ é semelhante nas baixas frequências mas discordante nas altas frequências.
+Isso está em consonância com o fato de que os dados trazem mais informações nas baixas frequências, conforme visto na Figura \ref{fig:data_fourier}.
+Por outro lado, a Figura \ref{fig:bode-noise} mostra que o sistema $H(q)$ é mais diverso entre as diferentes identificações.
+% A identificação do ruído não é tão boa quanto a identificação do sistema.
+
 \section{Conclusões}
 
 \bibliographystyle{IEEEtran}
