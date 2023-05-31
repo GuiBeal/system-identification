@@ -38,7 +38,11 @@
 \title{Identificação de Sistema por Erro de Predição com Modelos Polinomiais}
 \author{Guilherme de Paoli Beal
   \\
-  {\small Universidade Federal do Rio Grande do Sul}
+  {\small Universidade Federal do Rio Grande do Sul
+  \\
+  Programa de Pós-Graduação em Engenharia Elétrica
+  \\
+  Aprendizado Supervisionado de Modelos Paramétricos}
   \thanks{G. Beal, guilherme.beal@ufrgs.br}
 }
 \maketitle
@@ -88,15 +92,15 @@ O ruído de medição é gerado a partir de ruído branco filtrado, como
   ,
 \end{equation}
 em que
-$H_0$ é a função de transferência do filtro e
+$H_0(q)$ é a função de transferência do filtro e
 $e(t)$ é ruído branco.
 
-\subsection{Modelos}
+\subsection{Modelos Polinomiais}
 
 O modelo busca representar o sistema real $G_0(q)$ expresso em \eqref{eq:system}.
 Em particular, na identificação por erro de predição, o modelo procurar caracterizar também o ruído $\nu(t)$ através da identificação de $H_0(q)$.
 
-Quatro diferentes classes de modelo são exploradas neste trabalho:
+Quatro diferentes classes de modelo polinomiais são exploradas neste trabalho:
 \begin{itemize}
   \item Autorregressivo com Entrada Externa, ou \emph{Autoregressive with Extra Input} (ARX);
   \item Autorregressivo com Média Móvel e Entrada Externa, ou \emph{Autoregressive Moving Average with Extra Input} (ARMAX);
@@ -232,7 +236,7 @@ Com isso, obtém-se
   G(q) &= \dfrac{B(q)}{F(q)}
   , \text{ e}
   \\
-  H(q) &= \dfrac{C(q)}{F(q)}
+  H(q) &= \dfrac{C(q)}{D(q)}
   .
 \end{align}
 
@@ -291,20 +295,7 @@ A fim de considerar sistemas amostrados, todos os sistemas tem atraso de pelo me
   \centering
   \caption{Intervalo de variação das ordens dos polinômios}
   \label{tab:orders}
-  \newcolumntype{C}{>{\centering\arraybackslash}X}
-  \setlength{\extrarowheight}{1pt}
-  \begin{tabularx}{\linewidth}{@{} c *{6}{C} c @{}}
-    \toprule
-    Classe & $n_a$    & $n_b$    & $n_c$    & $n_d$    & $n_f$    & $n_k$    & Total \\
-    \midrule
-    ARX    & $[1, 4]$ & $[0, 4]$ & --       & --       & --       & $[1, 4]$ & 80    \\
-    ARMAX  & $[1, 4]$ & $[0, 4]$ & $[1, 4]$ & --       & --       & $[1, 4]$ & 320   \\
-    OE     & --       & $[0, 4]$ & --       & --       & $[1, 4]$ & $[1, 4]$ & 80    \\
-    BJ     & --       & $[0, 4]$ & $[0, 4]$ & $[1, 4]$ & $[1, 4]$ & $[1, 4]$ & 1600  \\
-    \midrule
-    Total  &          &          &          &          &          &          & 2080  \\
-    \bottomrule
-  \end{tabularx}
+  \input{tab-orders}
 \end{table}
 
 Destaca-se que dentre as 1600 identificações realizadas com a classe BJ 960 apresentaram algum problema de implementação interno ao pacote \texttt{pysid}.
@@ -321,41 +312,7 @@ Os modelos são unicamente identificados por um índice, exibidos na primeira co
 \begin{table*}
   \caption{Melhores resultados por classe com base no critério $\text{AICc}_v$}
   \label{tab:results-class}
-  \newcolumntype{C}{>{\centering\arraybackslash}X}
-  \setlength{\extrarowheight}{1pt}
-  \begin{tabularx}{\textwidth}{@{} c *{10}{C} c @{}}
-    \toprule
-    \#   & Classe & $n_a$   & $n_b$   & $n_c$   & $n_d$   & $n_f$   & $n_k$   & $\text{AICc}_v$ & $\text{AICc}_i$ & $J_v$         & $J_i$        \\
-    \midrule
-    24   & ARX    & \num{2} & \num{1} & --      & --      & --      & \num{1} & \num{79.463 }   & \num{288.142}   & \num{5.801  } & \num{5.750 } \\
-    44   & ARX    & \num{3} & \num{1} & --      & --      & --      & \num{1} & \num{80.358 }   & \num{289.971}   & \num{5.556  } & \num{5.740 } \\
-    28   & ARX    & \num{2} & \num{2} & --      & --      & --      & \num{1} & \num{80.596 }   & \num{276.503}   & \num{5.589  } & \num{5.276 } \\
-    20   & ARX    & \num{2} & \num{0} & --      & --      & --      & \num{1} & \num{80.820 }   & \num{290.423}   & \num{6.384  } & \num{5.910 } \\
-    40   & ARX    & \num{3} & \num{0} & --      & --      & --      & \num{1} & \num{81.303 }   & \num{291.572}   & \num{6.074  } & \num{5.875 } \\
-    32   & ARX    & \num{2} & \num{3} & --      & --      & --      & \num{1} & \num{82.077 }   & \num{278.289}   & \num{5.410  } & \num{5.264 } \\
-    \midrule
-    160  & ARMAX  & \num{2} & \num{0} & \num{1} & --      & --      & \num{1} & \num{82.406 }   & \num{292.387}   & \num{6.244  } & \num{5.905 } \\
-    240  & ARMAX  & \num{3} & \num{0} & \num{1} & --      & --      & \num{1} & \num{82.440 }   & \num{291.698}   & \num{5.853  } & \num{5.802 } \\
-    192  & ARMAX  & \num{2} & \num{2} & \num{1} & --      & --      & \num{1} & \num{83.302 }   & \num{278.685}   & \num{5.579  } & \num{5.277 } \\
-    144  & ARMAX  & \num{1} & \num{4} & \num{1} & --      & --      & \num{1} & \num{83.435 }   & \num{299.330}   & \num{5.199  } & \num{5.922 } \\
-    112  & ARMAX  & \num{1} & \num{2} & \num{1} & --      & --      & \num{1} & \num{83.574 }   & \num{294.450}   & \num{6.021  } & \num{5.902 } \\
-    336  & ARMAX  & \num{4} & \num{1} & \num{1} & --      & --      & \num{1} & \num{84.031 }   & \num{282.669}   & \num{5.277  } & \num{5.337 } \\
-    \midrule
-    465  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{2} & \num{203.538}   & \num{635.576}   & \num{112.710} & \num{49.103} \\
-    469  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{2} & \num{205.126}   & \num{637.238}   & \num{108.924} & \num{48.942} \\
-    466  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{3} & \num{208.209}   & \num{688.227}   & \num{126.671} & \num{68.237} \\
-    468  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{1} & \num{210.717}   & \num{620.915}   & \num{125.264} & \num{44.195} \\
-    470  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{3} & \num{211.195}   & \num{690.408}   & \num{126.771} & \num{68.234} \\
-    464  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{1} & \num{211.208}   & \num{622.115}   & \num{136.532} & \num{45.141} \\
-    \midrule
-    1136 & BJ     & --      & \num{2} & \num{0} & \num{2} & \num{1} & \num{1} & \num{82.909 }   & \num{276.778}   & \num{5.524  } & \num{5.214 } \\
-    816  & BJ     & --      & \num{1} & \num{0} & \num{2} & \num{1} & \num{1} & \num{83.040 }   & \num{273.646}   & \num{5.941  } & \num{5.183 } \\
-    832  & BJ     & --      & \num{1} & \num{0} & \num{3} & \num{1} & \num{1} & \num{84.041 }   & \num{276.120}   & \num{5.683  } & \num{5.193 } \\
-    1456 & BJ     & --      & \num{3} & \num{0} & \num{2} & \num{1} & \num{1} & \num{84.939 }   & \num{277.505}   & \num{5.398  } & \num{5.167 } \\
-    1140 & BJ     & --      & \num{2} & \num{0} & \num{2} & \num{2} & \num{1} & \num{85.844 }   & \num{278.965}   & \num{5.521  } & \num{5.214 } \\
-    848  & BJ     & --      & \num{1} & \num{0} & \num{4} & \num{1} & \num{1} & \num{86.957 }   & \num{274.874}   & \num{5.677  } & \num{5.083 } \\
-    \bottomrule
-  \end{tabularx}
+  \input{tab-results-class}
 \end{table*}
 
 Comparando a ordem de grandeza de cada critério de qualidade na Tabela \ref{tab:results-class}, nota-se que os modelos ARX, ARMAX e BJ apresentam um desempenho consideravelmente melhor que os modelos OE;
@@ -369,33 +326,7 @@ Note a prevalência de modelos ARX, bem como das características discutidas no 
 \begin{table*}
   \caption{Melhores resultados gerais com base no critério $\text{AICc}_v$}
   \label{tab:results}
-  \newcolumntype{C}{>{\centering\arraybackslash}X}
-  \setlength{\extrarowheight}{1pt}
-  \begin{tabularx}{\textwidth}{@{} c *{10}{C} c @{}}
-    \toprule
-    \#   & Classe & $n_a$   & $n_b$   & $n_c$   & $n_d$   & $n_f$   & $n_k$   & $\text{AICc}_v$ & $\text{AICc}_i$ & $J_v$  & $J_i$       \\
-    24   & ARX    & \num{2} & \num{1} &  --     &  --       &  --   & \num{1} & \num{79.463} & \num{288.142} & \num{5.801} & \num{5.75}  \\
-    44   & ARX    & \num{3} & \num{1} &  --     &  --       &  --   & \num{1} & \num{80.358} & \num{289.971} & \num{5.556} & \num{5.74}  \\
-    28   & ARX    & \num{2} & \num{2} &  --     &  --       &  --   & \num{1} & \num{80.596} & \num{276.503} & \num{5.589} & \num{5.276} \\
-    20   & ARX    & \num{2} & \num{0} &  --     &  --       &  --   & \num{1} & \num{80.82 } & \num{290.423} & \num{6.384} & \num{5.91}  \\
-    40   & ARX    & \num{3} & \num{0} &  --     &  --       &  --   & \num{1} & \num{81.303} & \num{291.572} & \num{6.074} & \num{5.875} \\
-    32   & ARX    & \num{2} & \num{3} &  --     &  --       &  --   & \num{1} & \num{82.077} & \num{278.289} & \num{5.41 } & \num{5.264} \\
-    64   & ARX    & \num{4} & \num{1} &  --     &  --       &  --   & \num{1} & \num{82.145} & \num{288.495} & \num{5.419} & \num{5.611} \\
-    160  & ARMAX  & \num{2} & \num{0} & \num{1} &  --       &  --   & \num{1} & \num{82.406} & \num{292.387} & \num{6.244} & \num{5.905} \\
-    240  & ARMAX  & \num{3} & \num{0} & \num{1} &  --       &  --   & \num{1} & \num{82.44 } & \num{291.698} & \num{5.853} & \num{5.802} \\
-    1136 & BJ     &  --     & \num{2} & \num{0} & \num{2} & \num{1} & \num{1} & \num{82.909} & \num{276.778} & \num{5.524} & \num{5.214} \\
-    816  & BJ     &  --     & \num{1} & \num{0} & \num{2} & \num{1} & \num{1} & \num{83.04 } & \num{273.646} & \num{5.941} & \num{5.183} \\
-    36   & ARX    & \num{2} & \num{4} &  --     &  --       &  --   & \num{1} & \num{83.283} & \num{281.484} & \num{5.179} & \num{5.297} \\
-    192  & ARMAX  & \num{2} & \num{2} & \num{1} &  --       &  --   & \num{1} & \num{83.302} & \num{278.685} & \num{5.579} & \num{5.277} \\
-    60   & ARX    & \num{4} & \num{0} &  --     &  --       &  --   & \num{1} & \num{83.403} & \num{291.217} & \num{5.995} & \num{5.784} \\
-    144  & ARMAX  & \num{1} & \num{4} & \num{1} &  --       &  --   & \num{1} & \num{83.435} & \num{299.33 } & \num{5.199} & \num{5.922} \\
-    112  & ARMAX  & \num{1} & \num{2} & \num{1} &  --       &  --   & \num{1} & \num{83.574} & \num{294.45 } & \num{6.021} & \num{5.902} \\
-    48   & ARX    & \num{3} & \num{2} &  --     &  --       &  --   & \num{1} & \num{83.698} & \num{278.625} & \num{5.634} & \num{5.275} \\
-    336  & ARMAX  & \num{4} & \num{1} & \num{1} &  --       &  --   & \num{1} & \num{84.031} & \num{282.669} & \num{5.277} & \num{5.337} \\
-    832  & BJ     &  --     & \num{1} & \num{0} & \num{3} & \num{1} & \num{1} & \num{84.041} & \num{276.12 } & \num{5.683} & \num{5.193} \\
-    52   & ARX    & \num{3} & \num{3} &  --     &  --       &  --   & \num{1} & \num{84.774} & \num{280.442} & \num{5.376} & \num{5.263} \\
-    \bottomrule
-  \end{tabularx}
+  \input{tab-results}
 \end{table*}
 
 A partir das identificações, são obtidas as funções de transferência do sistema $G(q)$ e do ruído $H(q)$.

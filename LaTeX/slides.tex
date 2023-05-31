@@ -1,16 +1,30 @@
 \documentclass{beamer}
 
-\usepackage{standalone}
-\usepackage{wrapfig}
-\usepackage{Figure}
-\usepackage{Math}
+\usepackage[detect-weight,detect-family]{siunitx}
+\sisetup{output-decimal-marker = {,}}
+\sisetup{exponent-product = {\cdot}}
+\sisetup{group-digits = none}
+\sisetup{round-mode = figures}
+\sisetup{round-precision = 4}
+\sisetup{round-pad = false}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{resizegather}
 \usepackage{icomma}
-\usepackage[warningthreshold=0.1]{resizegather}
-\usepackage{Drawing}
-
-% \graphicspath{{../../../MathWorks/ELE223_Sistemas_Lineares_A/Trabalho/fig/}}
-
+\mathtoolsset{showonlyrefs}
 \usefonttheme[onlymath]{serif}
+\newcommand{\Prod}{\,}
+
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{wrapfig}
+\graphicspath{{../img/}}
+\epstopdfsetup{outdir=./build/}
+
+\usepackage{tabularx}
+\usepackage{booktabs}
 
 \addtobeamertemplate{navigation symbols}{}{
   \usebeamerfont{footline}
@@ -21,7 +35,7 @@
 
 \renewcommand{\Prod}{\,}
 
-\title{Identificação de Sistema Linear por Erro de Predição}
+\title{Identificação de Sistema por Erro de Predição com Modelos Polinomiais}
 \author{Guilherme de Paoli Beal}
 \institute{
   Universidade Federal do Rio Grande do Sul
@@ -40,6 +54,298 @@
   \titlepage
 \end{frame}
 }
+
+\begin{frame}{Sistema}
+  Sistema SISO, discreto, linear e invariante no tempo:
+  \begin{gather}
+    y(t) = G_0(q) \Prod u(t) + \nu(t)
+    \\
+    \nu(t) = H_0(q) \Prod e(t)
+  \end{gather}
+  \begin{itemize}
+    \item[$t \in \mathbb{N}$] variável de tempo discreto
+    \item[$q$] operador de avanço
+    \item[$y(t)$] sinal de saída
+    \item[$u(t)$] sinal de entrada
+    \item[$\nu(t)$] ruído de medição desconhecido
+    \item[$e(t)$] ruído branco
+    \item[$G_0(q)$] função de transferência do sistema
+    \item[$H_0(q)$] função de transferência do filtro
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Modelos Polinomiais}
+  \begin{itemize}
+    \item[ARX] Autorregressivo com Entrada Externa, ou \emph{Autoregressive with Extra Input}
+    \item[ARMAX] Autorregressivo com Média Móvel e Entrada Externa, ou \emph{Autoregressive Moving Average with Extra Input}
+    \item[OE] Erro na Saída, ou \emph{Output Error}
+    \item[BJ] Box-Jenkins
+  \end{itemize}
+  Formato genérico:
+  \begin{gather}
+    A(q) \Prod y(t) = \dfrac{B(q)}{F(q)} \Prod u(t) + \dfrac{C(q)}{D(q)} \Prod e(t)
+  \end{gather}
+\end{frame}
+
+\begin{frame}{Modelos Polinomiais}
+  \begin{gather}
+    A(q) \Prod y(t) = \dfrac{B(q)}{F(q)} \Prod u(t) + \dfrac{C(q)}{D(q)} \Prod e(t)
+    \\\Updownarrow\\
+    y(t) = G(q) \Prod u(t) + H(q) \Prod e(t)
+    \\\\
+    G(q) = \dfrac{B(q)}{A(q) \Prod F(q)}
+    \qquad
+    H(q) = \dfrac{C(q)}{A(q) \Prod D(q)}
+    \\\\
+    \begin{aligned}
+      A(q) &= 1 + a_1 \Prod q^{-1} + \dotsb + a_{n_a} \Prod q^{-n_a}
+      \\
+      B(q) &= q^{-n_k} \Prod \left(b_0 + b_1 \Prod q^{-1} + \dotsb + b_{n_b} \Prod q^{-n_b}\right)
+      \\
+      C(q) &= 1 + c_1 \Prod q^{-1} + \dotsb + c_{n_c} \Prod q^{-n_c}
+      \\
+      D(q) &= 1 + d_1 \Prod q^{-1} + \dotsb + d_{n_d} \Prod q^{-n_d}
+      \\
+      F(q) &= 1 + f_1 \Prod q^{-1} + \dotsb + f_{n_f} \Prod q^{-n_f}
+    \end{aligned}
+  \end{gather}
+\end{frame}
+
+\begin{frame}{Predição}
+  \begin{gather}
+    \hat{y}(t) = L_u(q) \Prod u(t) + L_y(q) \Prod y(t)
+    \\\\
+    \begin{aligned}
+      L_u(q) &= \dfrac{G(q)}{H(q)}
+      \\
+      L_y(q) &= 1 - \dfrac{1}{H(q)}
+    \end{aligned}
+  \end{gather}
+  Erro de predição:
+  \begin{align}
+    \varepsilon(t)
+    &= y(t) - \hat{y}(t)
+    \\
+    &= \dfrac{y(t) - G(q) \Prod u(t)}{H(q)}
+  \end{align}
+  Erro quadrático médio:
+  \begin{equation}
+    J = \dfrac{1}{N} \Prod \sum_{t=1}^{N}{\left(\varepsilon(t)\right)^2}
+  \end{equation}
+\end{frame}
+
+\begin{frame}{ARX}
+  \begin{itemize}
+    % \item $n_a$
+    % \item $n_b$
+    \item $n_c=0$
+    \item $n_d=0$
+    \item $n_f=0$
+    % \item $n_k$
+  \end{itemize}
+  \begin{gather}
+    G(q) = \dfrac{B(q)}{A(q)}
+    \qquad
+    H(q) = \dfrac{1}{A(q)}
+  \end{gather}
+  \begin{align}
+    A(q) &= 1 + a_1 \Prod q^{-1} + \dotsb + a_{n_a} \Prod q^{-n_a}
+    \\
+    B(q) &= q^{-n_k} \Prod \left(b_0 + b_1 \Prod q^{-1} + \dotsb + b_{n_b} \Prod q^{-n_b}\right)
+  \end{align}
+  $J$ é quadrático nos parâmetros
+\end{frame}
+
+\begin{frame}{ARMAX}
+  \begin{itemize}
+    % \item $n_a$
+    % \item $n_b$
+    % \item $n_c$
+    \item $n_d=0$
+    \item $n_f=0$
+    % \item $n_k$
+  \end{itemize}
+  \begin{gather}
+    G(q) = \dfrac{B(q)}{A(q)}
+    \qquad
+    H(q) = \dfrac{C(q)}{A(q)}
+  \end{gather}
+  \begin{align}
+    A(q) &= 1 + a_1 \Prod q^{-1} + \dotsb + a_{n_a} \Prod q^{-n_a}
+    \\
+    B(q) &= q^{-n_k} \Prod \left(b_0 + b_1 \Prod q^{-1} + \dotsb + b_{n_b} \Prod q^{-n_b}\right)
+    \\
+    C(q) &= 1 + c_1 \Prod q^{-1} + \dotsb + c_{n_c} \Prod q^{-n_c}
+  \end{align}
+  Generalização do ARX
+\end{frame}
+
+\begin{frame}{Ouput Error}
+  \begin{itemize}
+    \item $n_a=0$
+    % \item $n_b$
+    \item $n_c=0$
+    \item $n_d=0$
+    % \item $n_f$
+    % \item $n_k$
+  \end{itemize}
+  \begin{gather}
+    G(q) = \dfrac{B(q)}{F(q)}
+    \qquad
+    H(q) = 1
+  \end{gather}
+  \begin{align}
+    B(q) &= q^{-n_k} \Prod \left(b_0 + b_1 \Prod q^{-1} + \dotsb + b_{n_b} \Prod q^{-n_b}\right)
+    \\
+    F(q) &= 1 + f_1 \Prod q^{-1} + \dotsb + f_{n_f} \Prod q^{-n_f}
+  \end{align}
+  Assume $\nu(t) = e(t)$
+\end{frame}
+
+\begin{frame}{Box-Jenkins}
+  \begin{itemize}
+    \item $n_a=0$
+    % \item $n_b$
+    % \item $n_c$
+    % \item $n_d$
+    % \item $n_f$
+    % \item $n_k$
+  \end{itemize}
+  \begin{gather}
+    G(q) = \dfrac{B(q)}{F(q)}
+    \qquad
+    H(q) = \dfrac{C(q)}{D(q)}
+  \end{gather}
+  \begin{align}
+    B(q) &= q^{-n_k} \Prod \left(b_0 + b_1 \Prod q^{-1} + \dotsb + b_{n_b} \Prod q^{-n_b}\right)
+    \\
+    C(q) &= 1 + c_1 \Prod q^{-1} + \dotsb + c_{n_c} \Prod q^{-n_c}
+    \\
+    D(q) &= 1 + d_1 \Prod q^{-1} + \dotsb + d_{n_d} \Prod q^{-n_d}
+    \\
+    F(q) &= 1 + f_1 \Prod q^{-1} + \dotsb + f_{n_f} \Prod q^{-n_f}
+  \end{align}
+  Modelo mais livre
+\end{frame}
+
+\begin{frame}{Critério de Informação de Akaike}
+  \begin{gather}
+    \text{AIC} = N \Prod \log\left(J\right) + 2 \Prod k
+    \\
+    \text{AICc} = \text{AIC} + \dfrac{2 \Prod k \Prod \left(k + 1\right)}{N - k - 1}
+  \end{gather}
+  \begin{itemize}
+    \item[$N$] Número de amostras
+    \item[$J$] Erro quadrático médio de predição
+    \item[$k$] Número de parâmetros no modelo
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dados}
+  \includegraphics[width=\linewidth]{data_folded}
+\end{frame}
+
+\begin{frame}{Dados - Espectro de Amplitude}
+  \includegraphics[width=\linewidth]{data_fourier_log}
+\end{frame}
+
+\begin{frame}{Identificação - Ordens}
+  \input{tab-orders}
+\end{frame}
+
+\begin{frame}{Identificação - Resultados por Classe}
+  \sisetup{round-precision = 3}
+  \input{tab-results-arx-armax}
+\end{frame}
+
+\begin{frame}{Identificação - Resultados por Classe}
+  \sisetup{round-precision = 3}
+  \input{tab-results-oe-bj}
+\end{frame}
+
+\begin{frame}{Identificação - Resultados Gerais}
+  \sisetup{round-precision = 3}
+  \input{tab-results-small}
+  $n_k = 1$ em todos os modelos
+\end{frame}
+
+\begin{frame}{Comparação - Resposta em Frequência - $G(q)$}
+  \centering
+  \includegraphics[width=.9\linewidth]{bode_G_AICCv}
+\end{frame}
+
+\begin{frame}{Comparação - Resposta em Frequência - $H(q)$}
+  \centering
+  \includegraphics[width=.9\linewidth]{bode_H_AICCv}
+\end{frame}
+
+\begin{frame}{Sistema Verdadeiro}
+  \begin{align}
+    G_0(q) &= \dfrac{                   \num{2} \Prod q^2 + \num{2} \Prod q      - \num{1.5}                    }{q^3 - \num{1.4} \Prod q^2    + \num{0.48} \Prod q     }
+    \\
+           &= \dfrac{q^{-1} \Prod \left(\num{2}           + \num{2} \Prod q^{-1} - \num{1.5} \Prod q^{-2}\right)}{1   - \num{1.4} \Prod q^{-1} + \num{0.48} \Prod q^{-2}}
+    \\
+    H_0(q) &= \dfrac{q^3}{q^3 - \num{1.4} \Prod q^2    + \num{0.48} \Prod q     }
+    \\
+           &= \dfrac{1  }{1   - \num{1.4} \Prod q^{-1} + \num{0.48} \Prod q^{-2}}
+  \end{align}
+  \pause
+  Menor Modelo de Ordem Completa:\\
+  ARX com $n_a=2$, $n_b=2$, e $n_k=1$
+  \begin{align}
+    A(q) &= 1 + a_1 \Prod q^{-1} + a_2 \Prod q^{-2}
+    \\
+    B(q) &= q^{-1} \Prod \left(b_0 + b_1 \Prod q^{-1} + b_2 \Prod q^{-2}\right)
+  \end{align}
+\end{frame}
+
+\begin{frame}{Menor Modelo de Ordem Completa}
+  ARX com $n_a=2$, $n_b=2$, e $n_k=1$ equivale ao modelo \#28
+  \begin{align}
+    A_{28}(q) &= 1   - \num{1.40683412} \Prod q^{-1} + \num{0.48261202} \Prod q^{-2}
+    \\
+    B_{28}(q) &= q^{-1} \Prod \left(\num{2.16246556} + \num{1.61084338} \Prod q^{-1} - \num{1.6016382} \Prod q^{-2}\right)
+  \end{align}
+  \begin{gather}
+    \text{AICc}_v = \num{80.820}
+    \qquad
+    \text{AICc}_i = \num{290.423}
+    \qquad
+    J_v = \num{6.384}
+    \qquad
+    J_i = \num{5.910}
+  \end{gather}
+  \vspace{-20pt}
+  \begin{align}
+    G_{28}(q) &= \dfrac{                   \num{2.16246556} \Prod q^2 + \num{1.61084338} \Prod q      - \num{1.6016382}                    }{q^3 - \num{1.40683412} \Prod q^2    + \num{0.48261202} \Prod q     }
+    \\
+    H_{28}(q) &= \dfrac{q^3}{q^3 - \num{1.40683412} \Prod q^2    + \num{0.48261202} \Prod q     }
+  \end{align}
+  \pause
+  \vspace{-15pt}
+  \begin{align}
+    G_0(q) &= \dfrac{                   \num{2} \Prod q^2 + \num{2} \Prod q      - \num{1.5}                    }{q^3 - \num{1.4} \Prod q^2    + \num{0.48} \Prod q     }
+    \\
+    H_0(q) &= \dfrac{q^3}{q^3 - \num{1.4} \Prod q^2    + \num{0.48} \Prod q     }
+  \end{align}
+\end{frame}
+
+\begin{frame}{Menor Modelo de Ordem Completa - Previsão}
+  \includegraphics[width=\linewidth]{y_p_28}
+  \begin{equation}
+    J_v = \num{6.384}
+  \end{equation}
+\end{frame}
+
+\begin{frame}{Menor Modelo de Ordem Completa - Resposta em Frequência - $G(q)$}
+  \centering
+  \includegraphics[width=0.7\linewidth]{bode_G_28}
+\end{frame}
+
+\begin{frame}{Menor Modelo de Ordem Completa - Resposta em Frequência - $H(q)$}
+  \centering
+  \includegraphics[width=0.7\linewidth]{bode_H_28}
+\end{frame}
 
 {
 \setbeamertemplate{navigation symbols}{}

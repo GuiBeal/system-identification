@@ -1,0 +1,35 @@
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\setlength{\extrarowheight}{1pt}
+\begin{tabularx}{\textwidth}{@{} c c *{6}{C} c c c c @{}}
+  \toprule
+  \#   & Classe & $n_a$   & $n_b$   & $n_c$   & $n_d$   & $n_f$   & $n_k$   & $\text{AICc}_v$ & $\text{AICc}_i$ & $J_v$         & $J_i$        \\
+  \midrule
+  24   & ARX    & \num{2} & \num{1} & --      & --      & --      & \num{1} & \num{79.463 }   & \num{288.142}   & \num{5.801  } & \num{5.750 } \\
+  44   & ARX    & \num{3} & \num{1} & --      & --      & --      & \num{1} & \num{80.358 }   & \num{289.971}   & \num{5.556  } & \num{5.740 } \\
+  28   & ARX    & \num{2} & \num{2} & --      & --      & --      & \num{1} & \num{80.596 }   & \num{276.503}   & \num{5.589  } & \num{5.276 } \\
+  20   & ARX    & \num{2} & \num{0} & --      & --      & --      & \num{1} & \num{80.820 }   & \num{290.423}   & \num{6.384  } & \num{5.910 } \\
+  40   & ARX    & \num{3} & \num{0} & --      & --      & --      & \num{1} & \num{81.303 }   & \num{291.572}   & \num{6.074  } & \num{5.875 } \\
+  32   & ARX    & \num{2} & \num{3} & --      & --      & --      & \num{1} & \num{82.077 }   & \num{278.289}   & \num{5.410  } & \num{5.264 } \\
+  \midrule
+  160  & ARMAX  & \num{2} & \num{0} & \num{1} & --      & --      & \num{1} & \num{82.406 }   & \num{292.387}   & \num{6.244  } & \num{5.905 } \\
+  240  & ARMAX  & \num{3} & \num{0} & \num{1} & --      & --      & \num{1} & \num{82.440 }   & \num{291.698}   & \num{5.853  } & \num{5.802 } \\
+  192  & ARMAX  & \num{2} & \num{2} & \num{1} & --      & --      & \num{1} & \num{83.302 }   & \num{278.685}   & \num{5.579  } & \num{5.277 } \\
+  144  & ARMAX  & \num{1} & \num{4} & \num{1} & --      & --      & \num{1} & \num{83.435 }   & \num{299.330}   & \num{5.199  } & \num{5.922 } \\
+  112  & ARMAX  & \num{1} & \num{2} & \num{1} & --      & --      & \num{1} & \num{83.574 }   & \num{294.450}   & \num{6.021  } & \num{5.902 } \\
+  336  & ARMAX  & \num{4} & \num{1} & \num{1} & --      & --      & \num{1} & \num{84.031 }   & \num{282.669}   & \num{5.277  } & \num{5.337 } \\
+  \midrule
+  465  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{2} & \num{203.538}   & \num{635.576}   & \num{112.710} & \num{49.103} \\
+  469  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{2} & \num{205.126}   & \num{637.238}   & \num{108.924} & \num{48.942} \\
+  466  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{3} & \num{208.209}   & \num{688.227}   & \num{126.671} & \num{68.237} \\
+  468  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{1} & \num{210.717}   & \num{620.915}   & \num{125.264} & \num{44.195} \\
+  470  & OE     & --      & \num{4} & --      & --      & \num{2} & \num{3} & \num{211.195}   & \num{690.408}   & \num{126.771} & \num{68.234} \\
+  464  & OE     & --      & \num{4} & --      & --      & \num{1} & \num{1} & \num{211.208}   & \num{622.115}   & \num{136.532} & \num{45.141} \\
+  \midrule
+  1136 & BJ     & --      & \num{2} & \num{0} & \num{2} & \num{1} & \num{1} & \num{82.909 }   & \num{276.778}   & \num{5.524  } & \num{5.214 } \\
+  816  & BJ     & --      & \num{1} & \num{0} & \num{2} & \num{1} & \num{1} & \num{83.040 }   & \num{273.646}   & \num{5.941  } & \num{5.183 } \\
+  832  & BJ     & --      & \num{1} & \num{0} & \num{3} & \num{1} & \num{1} & \num{84.041 }   & \num{276.120}   & \num{5.683  } & \num{5.193 } \\
+  1456 & BJ     & --      & \num{3} & \num{0} & \num{2} & \num{1} & \num{1} & \num{84.939 }   & \num{277.505}   & \num{5.398  } & \num{5.167 } \\
+  1140 & BJ     & --      & \num{2} & \num{0} & \num{2} & \num{2} & \num{1} & \num{85.844 }   & \num{278.965}   & \num{5.521  } & \num{5.214 } \\
+  848  & BJ     & --      & \num{1} & \num{0} & \num{4} & \num{1} & \num{1} & \num{86.957 }   & \num{274.874}   & \num{5.677  } & \num{5.083 } \\
+  \bottomrule
+\end{tabularx}

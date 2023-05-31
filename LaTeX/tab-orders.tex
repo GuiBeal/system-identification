@@ -1,0 +1,14 @@
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\setlength{\extrarowheight}{1pt}
+\begin{tabularx}{\linewidth}{@{} c *{6}{C} c @{}}
+  \toprule
+  Classe & $n_a$    & $n_b$    & $n_c$    & $n_d$    & $n_f$    & $n_k$    & Total \\
+  \midrule
+  ARX    & $[1, 4]$ & $[0, 4]$ & --       & --       & --       & $[1, 4]$ & 80    \\
+  ARMAX  & $[1, 4]$ & $[0, 4]$ & $[1, 4]$ & --       & --       & $[1, 4]$ & 320   \\
+  OE     & --       & $[0, 4]$ & --       & --       & $[1, 4]$ & $[1, 4]$ & 80    \\
+  BJ     & --       & $[0, 4]$ & $[0, 4]$ & $[1, 4]$ & $[1, 4]$ & $[1, 4]$ & 1600  \\
+  \midrule
+  Total  &          &          &          &          &          &          & 2080  \\
+  \bottomrule
+\end{tabularx}
