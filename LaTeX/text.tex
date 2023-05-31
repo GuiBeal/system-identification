@@ -7,6 +7,10 @@
 \usepackage[detect-weight,detect-family]{siunitx}
 \sisetup{output-decimal-marker = {,}}
 \sisetup{exponent-product = {\cdot}}
+\sisetup{group-digits = none}
+\sisetup{round-mode = figures}
+\sisetup{round-precision = 6}
+\sisetup{round-pad = false}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -26,16 +30,12 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 
-% siunitx % cspell:disable-line
-\DeclareSIUnit{\med}{med}
-\DeclareSIUnit{\day}{dia}
-
 \hyphenation{ARX ARMAX OE BJ}
 
 \begin{document}
 \bstctlcite{IEEEBST:Brazilian}
 
-\title{Identificação de Sistema Linear por Erro de Predição}
+\title{Identificação de Sistema por Erro de Predição com Modelos Polinomiais}
 \author{Guilherme de Paoli Beal
   \\
   {\small Universidade Federal do Rio Grande do Sul}
@@ -45,7 +45,10 @@
 \thispagestyle{empty}\pagestyle{empty}
 
 \begin{abstract}
-  Aqui vai o resumo. %% TODO
+  Este trabalho busca identificar um sistema por erro de predição, a partir de um conjunto de dados de entrada e saída, com a saída corrompida por ruído de medição.
+  As classes de modelo ARX, ARMAX, Output Error e Box-Jenkins, com diferentes ordens, são avaliadas.
+  As identificações são realizadas pelo pacote \texttt{pysid} em linguagem Python.
+  Os resultados são comparados pelo erro quadrático médio de predição e pelo critério de informação de Akaike ajustado para dados com poucas amostras.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -57,7 +60,7 @@
 %% TODO desenvolver introdução
 Este trabalho visa à aplicação de identificação de um sistema discreto, linear e invariante no tempo, através do método de erro de predição, ou \emph{Prediction Error Method} (PEM).
 Uma batelada de dados de um sistema, supostamente desconhecido, é fornecida, em que a saída está contaminada por ruído de medição.
-A identificação é realizada utilizando diferentes classes de modelo e ordens, e os resultados são comparados.
+A identificação é realizada utilizando diferentes classes de modelo e ordens e os resultados são comparados.
 
 As implementações são desenvolvidas em Python, versão 3.9.12.
 A identificação por erro de predição utiliza o pacote \texttt{pysid} em versão de desenvolvimento 0.1.0.
@@ -68,22 +71,30 @@ O código deste projeto está publicado em \href{https://github.com/GuiBeal/syst
 Considere um sistema discreto, linear, invariante no tempo, com uma única entrada e uma única saída.
 A resposta deste sistema é dada por
 \begin{equation}\label{eq:system}
-  y(t) = G_0(z) \Prod u(t) + \nu(t)
+  y(t) = G_0(q) \Prod u(t) + \nu(t)
   ,\; t \in \mathbb{N}
   ,
 \end{equation}
 em que
 $y(t)$ é o sinal de saída,
-$G_0(z)$ é a função de transferência do sistema,
+$G_0(q)$ é a função de transferência do sistema,
 $u(t)$ é o sinal de entrada,
 $\nu(t)$ é um ruído de medição desconhecido, %% TODO verificar nomenclatura
-$z$ é o operador de avanço --- de modo que $z \Prod x(t) = x(t+1)$ --- e
+$q$ é o operador de avanço --- de modo que $q \Prod x(t) = x(t+1)$ --- e
 $t \in \mathbb{N}$ é a variável de tempo discreto.
+O ruído de medição é gerado a partir de ruído branco filtrado, como
+\begin{equation}
+  \nu(t) = H_0(q) \Prod e(t)
+  ,
+\end{equation}
+em que
+$H_0$ é a função de transferência do filtro e
+$e(t)$ é ruído branco.
 
 \subsection{Modelos}
 
 O modelo busca representar o sistema real $G_0(q)$ expresso em \eqref{eq:system}.
-Em particular, na identificação por erro de predição, o modelo procurar caracterizar também o ruído $\nu(t)$.
+Em particular, na identificação por erro de predição, o modelo procurar caracterizar também o ruído $\nu(t)$ através da identificação de $H_0(q)$.
 
 Quatro diferentes classes de modelo são exploradas neste trabalho:
 \begin{itemize}
@@ -95,9 +106,8 @@ Quatro diferentes classes de modelo são exploradas neste trabalho:
 Essas classes são casos particulares de um modelo mais genérico, definido por
 \begin{equation}\label{eq:model}
   A(q) \Prod y(t) = \dfrac{B(q)}{F(q)} \Prod u(t) + \dfrac{C(q)}{D(q)} \Prod e(t)
-  ,
+  .
 \end{equation}
-em que $e(t)$ é ruído branco.
 Os polinômios têm os formatos
 \begin{align}
   A(q) &= 1 + a_1 \Prod q^{-1} + \dotsb + a_{n_a} \Prod q^{-n_a}
@@ -115,7 +125,7 @@ Os polinômios têm os formatos
   F(q) &= 1 + f_1 \Prod q^{-1} + \dotsb + f_{n_f} \Prod q^{-n_f}
   ,
 \end{align}
-em que $n_a$, $n_b$, $n_c$, $n_d$ e $n_f$ são as ordens dos polinômios e $n_k$ é o número de atrasos da entrada para a saída.
+em que $n_a$, $n_b$, $n_c$, $n_d$ e $n_f$ são suas ordens e $n_k$ é o número de atrasos da entrada para a saída.
 Definindo as funções de transferência
 \begin{align}
   G(q) &= \dfrac{B(q)}{A(q) \Prod F(q)}
@@ -129,12 +139,8 @@ então \eqref{eq:model} pode ser reescrita como
   y(t) = G(q) \Prod u(t) + H(q) \Prod e(t)
   .
 \end{equation}
-Note que $G(q)$ caracteriza o sistema real $G_0(q)$.
-Por sua vez, o ruído de medição $\nu(t)$ é representado como ruído branco $e(t)$ filtrado por $H(q)$: %% TODO revisar nomenclatura
-\begin{equation}
-  \nu(t) = H(q) \Prod e(t)
-  .
-\end{equation}
+Note que $G(q)$ visa a caracterizar o sistema real $G_0(q)$.
+Por sua vez, o ruído de medição $\nu(t)$ é representado como ruído branco $e(t)$ filtrado por $H(q)$.
 
 Pelas definições dos polinômios,
 \begin{equation}\label{eq:H-inf}
@@ -144,57 +150,7 @@ Pelas definições dos polinômios,
 Outrossim, se o modelo representa um sistema amostrado, então $G(q)$ deve ser estritamente própria --- isto é, o grau de seu denominador é maior que o de seu numerador --- o que é garantido com $n_k \geq 1$.
 
 Ressalta-se que este modelo genérico pode apresentar definições e notações diferentes, como em \cite{book:Ljung1999, book:Aguirre2007, misc:matlab-polynomial-models}.
-A definição aqui apresentada corresponde aos formatos dos polinômios retornados pelas funções do pacote \texttt{pysid}.
-
-
-\subsection{Classes de Modelos}
-As quatro classes de modelo são obtidas fixando determinadas ordens no modelo genérico.
-
-\subsubsection{ARX}
-Neste modelo, há liberdade nas escolhas de $n_a$, $n_b$ e $n_k$, enquanto $n_c = n_d = n_f = 0$.
-Assim, as funções de transferência tornam-se
-\begin{align}
-  G(q) &= \dfrac{B(q)}{A(q)}
-  , \text{ e}
-  \\
-  H(q) &= \dfrac{1}{A(q)}
-  .
-\end{align}
-Esta classe tem a vantagem de resultar numa minimização linear nos parâmetros, os quais podem ser obtidos por mínimos quadrados.
-
-\subsubsection{ARMAX}
-Este modelo requer a arbitração das ordens $n_a$, $n_b$, $n_c$ e $n_k$, com $n_d = n_f = 0$.
-Portanto, as funções de transferência são
-\begin{align}
-  G(q) &= \dfrac{B(q)}{A(q)}
-  , \text{ e}
-  \\
-  H(q) &= \dfrac{C(q)}{A(q)}
-  .
-\end{align}
-
-\subsubsection{\emph{Output Error}}
-Para este modelo são escolhidas as ordens $n_b$, $n_f$ e $n_k$, fixando $n_a = n_c = n_d = 0$.
-Nesse casso, tem-se
-\begin{align}
-  G(q) &= \dfrac{B(q)}{F(q)}
-  , \text{ e}
-  \\
-  H(q) &= 1
-  .
-\end{align}
-Note que este modelo considera que o ruído de medição é ruído branco. % TODO nomenclatura
-
-\subsubsection{Box-Jenkins}
-Finalmente, neste modelo arbitra-se $n_b$, $n_c$, $n_d$, $n_f$ e $n_k$, com $n_a = 0$.
-Com isso, obtém-se
-\begin{align}
-  G(q) &= \dfrac{B(q)}{F(q)}
-  , \text{ e}
-  \\
-  H(q) &= \dfrac{C(q)}{F(q)}
-  .
-\end{align}
+A definição aqui apresentada corresponde ao formato dos polinômios retornados pelas funções do pacote \texttt{pysid}.
 
 \subsection{Predição}
 
@@ -230,6 +186,55 @@ em que $N$ é o número de amostras preditas.
 A identificação por erro de predição visa, a partir de um conjunto de dados de entrada $u(t)$ e de saída $y(t)$ medidos do processo, a identificar os parâmetros dos polinômios do modelo de forma a minimizar o custo expresso em \eqref{eq:mse}.
 O algoritmo aplicado neste processo depende da classe do modelo e está fora do escopo deste trabalho.
 Estes são implementados pelo pacote \texttt{pysid}.
+
+\subsection{Classes de Modelos}
+As quatro classes de modelo são obtidas fixando determinadas ordens no modelo genérico.
+
+\subsubsection{ARX}
+Neste modelo, há liberdade nas escolhas de $n_a$, $n_b$ e $n_k$, enquanto $n_c = n_d = n_f = 0$.
+Assim, as funções de transferência tornam-se
+\begin{align}
+  G(q) &= \dfrac{B(q)}{A(q)}
+  , \text{ e}
+  \\
+  H(q) &= \dfrac{1}{A(q)}
+  .
+\end{align}
+Esta classe tem a vantagem de fazer com que \eqref{eq:mse} seja quadrática nos parâmetros, os quais podem, portanto, ser calculados por mínimos quadrados.
+
+\subsubsection{ARMAX}
+Este modelo requer a arbitração das ordens $n_a$, $n_b$, $n_c$ e $n_k$, com $n_d = n_f = 0$.
+Portanto, as funções de transferência são
+\begin{align}
+  G(q) &= \dfrac{B(q)}{A(q)}
+  , \text{ e}
+  \\
+  H(q) &= \dfrac{C(q)}{A(q)}
+  .
+\end{align}
+
+\subsubsection{\emph{Output Error}}
+Para este modelo são escolhidas as ordens $n_b$, $n_f$ e $n_k$, fixando $n_a = n_c = n_d = 0$.
+Nesse casso, tem-se
+\begin{align}
+  G(q) &= \dfrac{B(q)}{F(q)}
+  , \text{ e}
+  \\
+  H(q) &= 1
+  .
+\end{align}
+Note que este modelo considera que o ruído de medição é ruído branco. % TODO nomenclatura
+
+\subsubsection{Box-Jenkins}
+Finalmente, neste modelo arbitra-se $n_b$, $n_c$, $n_d$, $n_f$ e $n_k$, com $n_a = 0$.
+Com isso, obtém-se
+\begin{align}
+  G(q) &= \dfrac{B(q)}{F(q)}
+  , \text{ e}
+  \\
+  H(q) &= \dfrac{C(q)}{F(q)}
+  .
+\end{align}
 
 \section{Critério de Informação de Akaike}
 
@@ -302,14 +307,15 @@ A fim de considerar sistemas amostrados, todos os sistemas tem atraso de pelo me
   \end{tabularx}
 \end{table}
 
-É importante ressaltar que dentre as 1600 identificações realizadas com a classe BJ 960 apresentaram algum problema de implementação interno ao pacote \texttt{pysid}.
-Nesses casos, esses modelos foram simplesmente descartados.
+Destaca-se que dentre as 1600 identificações realizadas com a classe BJ 960 apresentaram algum problema de implementação interno ao pacote \texttt{pysid}.
+Nesses casos, os modelos foram descartados.
+Assim, o total de modelos efetivamente identificados é de 1120.
 
 Para cada identificação são calculados o erro quadrático médio, conforme \eqref{eq:mse}, e o critério de informação de Akaike para pequenos conjuntos de dados, conforme \eqref{eq:akaike-small}.
 Ambos são realizados tanto para o conjunto de dados de identificação --- denotado pelo subíndice $i$ --- como para o conjunto de validação --- denotado pelo subíndice $v$.
 
-Para cada uma das quatro classes, a Tabela \ref{tab:results-class} apresenta os seis melhores modelos resultantes, com base no critério de informação de Akaike com os dados de validação.
-Os demais custos também são
+Para cada uma das quatro classes, a Tabela \ref{tab:results-class} apresenta os seis melhores modelos resultantes, com base no critério de informação de Akaike com os dados de validação --- isto é, $\text{AICc}_v$.
+% Os demais custos também constam na tabela.
 Os modelos são unicamente identificados por um índice, exibidos na primeira coluna.
 
 \begin{table*}
@@ -355,9 +361,9 @@ Os modelos são unicamente identificados por um índice, exibidos na primeira co
 Comparando a ordem de grandeza de cada critério de qualidade na Tabela \ref{tab:results-class}, nota-se que os modelos ARX, ARMAX e BJ apresentam um desempenho consideravelmente melhor que os modelos OE;
 isto é um indicativo de que o ruído de medição não é branco, conforme supõe esse último modelo.
 Além disso, para os modelos ARX, ARMAX e BJ, todos as identificações presentes na Tabela \ref{tab:results-class} têm $n_k = 1$ --- isto é, um atraso da entrada para a saída de apenas uma amostra.
-Destaca-se, ainda, que nos modelos ARMAX e BJ, constam na Tabela \ref{tab:results-class} apenas identificações com $n_c$ partindo de seu valor mínimo --- 1 para ARMAX e 0 para BJ ---, levando à interpretação de que o numerador de $H(q)$ tem ordem pequena.
+Destaca-se, ainda, que entre os modelos ARMAX e BJ presentes na Tabela \ref{tab:results-class} todas as identificações têm $n_c$ partindo de seu valor mínimo --- 1 para ARMAX e 0 para BJ ---, levando à interpretação de que o numerador de $H(q)$ tem ordem pequena.
 
-A Tabela \ref{tab:results} mostra as 20 melhores identificações, classificadas pelo critério de informação de Akaike adaptado com os dados de validação.
+A Tabela \ref{tab:results} mostra as 20 melhores identificações, novamente classificadas pelo critério de informação de Akaike adaptado com os dados de validação --- $\text{AICc}_v$.
 Note a prevalência de modelos ARX, bem como das características discutidas no parágrafo anterior.
 
 \begin{table*}
@@ -398,14 +404,14 @@ A fim de compará-las visualmente, as Figuras \ref{fig:bode-system} e \ref{fig:b
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{bode_G_AICCv}
-  \caption{Resposta em frequências de $G(q)$ a partir das identificações na Tabela \ref{tab:results}.}
+  \caption{Respostas em frequência de $G(q)$ a partir das identificações na Tabela \ref{tab:results}.}
   \label{fig:bode-system}
 \end{figure}
 
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{bode_H_AICCv}
-  \caption{Resposta em frequências de $H(q)$ a partir das identificações na Tabela \ref{tab:results}.}
+  \caption{Respostas em frequência de $H(q)$ a partir das identificações na Tabela \ref{tab:results}.}
   \label{fig:bode-noise}
 \end{figure}
 
@@ -414,7 +420,94 @@ Isso está em consonância com o fato de que os dados trazem mais informações 
 Por outro lado, a Figura \ref{fig:bode-noise} mostra que o sistema $H(q)$ é mais diverso entre as diferentes identificações.
 % A identificação do ruído não é tão boa quanto a identificação do sistema.
 
+\subsection{Escolha de Modelos Adequados}
+Através das observações anteriores, procura-se arbitrar classes de modelo razoáveis para representar o sistema efetivo, ainda desconhecido.
+Os modelos OE são logo descartados devido ao seu desempenho inferior.
+Ademais, o atraso é arbitrado como $n_k = 1$ pois esse valor prevalece nos modelos bem-classificados.
+
+Conforme já citado, o numerador de $H(q)$ parece ser de ordem pequena.
+Em particular, com a prevalência de modelos ARMAX com $n_c = 0$ --- o que equivale a $C(q) = 1$, sem parâmetros --- e de modelos ARX, descarta-se também a classe ARMAX.
+Restam, portanto, modelos ARX e modelos BJ com $n_c = 0$; em ambos, $n_k$ = 1.
+A diferença entre esses dois casos é que o primeiro requer que os denominadores de $G(q)$ e $H(q)$ sejam iguais, enquanto o segundo permite que sejam independentes.
+
+Finalmente, por apresentar melhores classificações gerais com estrutura mais simples, sugere-se a utilização do modelo ARX.
+Pelos resultados, sugere-se uma ordem $n_a$ entre 2 e 3.
+A ordem $n_b$ pode ser escolhida entre 0 e 3.
+Ressalta-se que a arbitração de ordens mais elevadas permite contemplar uma quantidade maior de modelos na classe, ao custo de exigir a identificação de mais parâmetros.
+Conforme já mencionado, o atraso sugerido é $n_k = 1$.
+
+\subsection{Desempenho do Menor Modelo de Ordem Completa}
+As funções de transferência que efetivamente geraram os dados são agora reveladas como
+\begin{align}
+  G_0(q) &= \dfrac{                   \num{2} \Prod q^2 + \num{2} \Prod q      - \num{1.5}                    }{q^3 - \num{1.4} \Prod q^2    + \num{0.48} \Prod q     }
+  \\
+         &= \dfrac{q^{-1} \Prod \left(\num{2}           + \num{2} \Prod q^{-1} - \num{1.5} \Prod q^{-2}\right)}{1   - \num{1.4} \Prod q^{-1} + \num{0.48} \Prod q^{-2}}
+  , \text{ e}
+  \\
+  H_0(q) &= \dfrac{q^3}{q^3 - \num{1.4} \Prod q^2    + \num{0.48} \Prod q     }
+  \\
+         &= \dfrac{1  }{1   - \num{1.4} \Prod q^{-1} + \num{0.48} \Prod q^{-2}}
+  .
+\end{align}
+Observe que os denominadores de $G_0(q)$ e $H_0(q)$ são idênticos.
+Além disso, no formato de potências negativas, o numerador de $H_0(q)$ é unitário.
+Assim, a classe de modelo ARX com $n_a = 2$, $n_b = 2$ e $n_k = 1$ é a menor classe que contém o sistema efetivo.
+
+Note, através das Tabelas \ref{tab:results-class} e \ref{tab:results}, que essa classe corresponde à identificação de índice 28.
+Além disso, é a terceira melhor classificada tanto entre os modelos ARX como no geral.
+Seus polinômios são
+\begin{align}
+  A_{28}(q) &= 1   - \num{1.40683412} \Prod q^{-1} + \num{0.48261202} \Prod q^{-2}
+  , \text{ e}
+  \\
+  B_{28}(q) &= q^{-1} \Prod \left(\num{2.16246556} + \num{1.61084338} \Prod q^{-1} - \num{1.6016382} \Prod q^{-2}\right)
+  ,
+\end{align}
+os quais resultam nas funções de transferência
+\begin{align}
+  G_{28}(q) &= \dfrac{                   \num{2.16246556} \Prod q^2 + \num{1.61084338} \Prod q      - \num{1.6016382}                    }{q^3 - \num{1.40683412} \Prod q^2    + \num{0.48261202} \Prod q     }
+  \\
+            &= \dfrac{q^{-1} \Prod \left(\num{2.16246556}           + \num{1.61084338} \Prod q^{-1} - \num{1.6016382} \Prod q^{-2}\right)}{1   - \num{1.40683412} \Prod q^{-1} + \num{0.48261202} \Prod q^{-2}}
+  , \text{ e}
+  \\
+  H_{28}(q) &= \dfrac{q^3}{q^3 - \num{1.40683412} \Prod q^2    + \num{0.48261202} \Prod q     }
+  \\
+            &= \dfrac{1  }{1   - \num{1.40683412} \Prod q^{-1} + \num{0.48261202} \Prod q^{-2}}
+  .
+\end{align}
+
+A Figura \ref{fig:prediction} mostra a previsão da saída, obtida pela aplicação de \eqref{eq:prediction}, a partir do resultado desta identificação, em comparação aos dados de validação.
+Conforme consta nas Tabelas \ref{tab:results-class} e \ref{tab:results}, o erro quadrático médio associado é $\num{5.589}$.
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{y_p_28}
+  \caption{Previsão obtida com o menor modelo de ordem completa.}
+  \label{fig:prediction}
+\end{figure}
+
+A comparação com os sistemas efetivos é realizada pelas respostas em frequência das funções de transferência, as quais são exibidas nas Figuras \ref{fig:bode_system_complete} e \ref{fig:bode_noise_complete}.
+Observe que a função $G_{28}(q)$ apresenta um ganho estático visivelmente abaixo de $G_0(q)$.
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{bode_G_28}
+  \caption{Resposta em frequências de $G(q)$ a partir da identificação com o menor modelo de ordem completa.}
+  \label{fig:bode_system_complete}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{bode_H_28}
+  \caption{Resposta em frequências de $H(q)$ a partir da identificação com o menor modelo de ordem completa.}
+  \label{fig:bode_noise_complete}
+\end{figure}
+
 \section{Conclusões}
+
+A determinação da classe do modelo é um desafio ao projetista, ainda mais quando a ordem do sistema a ser identificado é desconhecida.
+O erro quadrático médio de predição e o critério de informação de Akaike permitem avaliar a qualidade dos modelos obtidos.
+
+Tendo sido realizada uma única identificação por classe, sempre a partir do mesmo conjunto de dados de identificação e validação, os resultados têm um fator considerável de aleatoriedade.
+A aleatoriedade poderia ser reduzida com a divisão do conjunto de dados em múltiplos subconjuntos de identificação e validação --- procedimento este denominado validação cruzada --- e posterior comparação dos vários resultados obtidos para cada classe.
 
 \bibliographystyle{IEEEtran}
 \bibliography{bib/book, bib/misc, bib/controlIEEE}
