@@ -43,6 +43,7 @@ def models_frame():
     'A','B','C','D','F',
     'G','H','zG','pG','kG','zH','pH','kH',
     'yp','delay',
+    'ei', 'ev',
   ])
 
 def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
@@ -69,6 +70,9 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
         aic_i, aicc_i = akaike(len(u_i), J_p_i, na + nb + 1)
         aic_v, aicc_v = akaike(len(u_v), J_p_v, na + nb + 1)
 
+        e_i = y_i[delay_i:] - y_p_i
+        e_v = y_v[delay_v:] - y_p_v
+
         models = pd.concat([models, pd.DataFrame({
           'model': 'ARX',
           'na': [na],
@@ -92,6 +96,8 @@ def arx(u_i, y_i, u_v, y_v, na_range, nb_range, nk_range):
           'AICv': [aic_v],
           'AICCv': [aicc_v],
           'delay': [delay_v],
+          'ei': [e_i],
+          'ev': [e_v],
         })], ignore_index=True)
 
   return models
@@ -123,6 +129,9 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
           aic_i, aicc_i = akaike(len(u_i), J_p_i, na + nb + 1 + nc)
           aic_v, aicc_v = akaike(len(u_v), J_p_v, na + nb + 1 + nc)
 
+          e_i = y_i[delay_i:] - y_p_i
+          e_v = y_v[delay_v:] - y_p_v
+
           models = pd.concat([models, pd.DataFrame({
             'model': 'ARMAX',
             'na': [na],
@@ -148,6 +157,8 @@ def armax(u_i, y_i, u_v, y_v, na_range, nb_range, nc_range, nk_range):
             'AICv': [aic_v],
             'AICCv': [aicc_v],
             'delay': [delay_v],
+            'ei': [e_i],
+            'ev': [e_v],
           })], ignore_index=True)
 
   return models
@@ -176,6 +187,9 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
         aic_i, aicc_i = akaike(len(u_i), J_p_i, nb + 1 + nf)
         aic_v, aicc_v = akaike(len(u_v), J_p_v, nb + 1 + nf)
 
+        e_i = y_i[delay_i:] - y_p_i
+        e_v = y_v[delay_v:] - y_p_v
+
         models = pd.concat([models, pd.DataFrame({
           'model': 'OE',
           'nb': [nb],
@@ -199,6 +213,8 @@ def oe(u_i, y_i, u_v, y_v, nb_range, nf_range, nk_range):
           'AICv': [aic_v],
           'AICCv': [aicc_v],
           'delay': [delay_v],
+          'ei': [e_i],
+          'ev': [e_v],
         })], ignore_index=True)
 
   return models
@@ -234,6 +250,9 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
               aic_i, aicc_i = akaike(len(u_i), J_p_i, nb + 1 + nc + nd + nf)
               aic_v, aicc_v = akaike(len(u_v), J_p_v, nb + 1 + nc + nd + nf)
 
+              e_i = y_i[delay_i:] - y_p_i
+              e_v = y_v[delay_v:] - y_p_v
+
               models = pd.concat([models, pd.DataFrame({
                 'model': 'BJ',
                 'nb': [nb],
@@ -261,6 +280,8 @@ def bj(u_i, y_i, u_v, y_v, nb_range, nc_range, nd_range, nf_range, nk_range):
                 'AICv': [aic_v],
                 'AICCv': [aicc_v],
                 'delay': [delay_v],
+                'ei': [e_i],
+                'ev': [e_v],
               })])
             except Exception as e:
               # display(str(e))

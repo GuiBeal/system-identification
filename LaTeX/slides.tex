@@ -130,7 +130,7 @@
   \end{align}
   Erro quadrático médio:
   \begin{equation}
-    J = \dfrac{1}{N} \Prod \sum_{t=1}^{N}{\left(\varepsilon(t)\right)^2}
+    J = \dfrac{1}{N} \Prod \sum_{t=0}^{N-1}{\left(\varepsilon(t)\right)^2}
   \end{equation}
 \end{frame}
 
@@ -243,6 +243,7 @@
 
 \begin{frame}{Dados}
   \includegraphics[width=\linewidth]{data_folded}
+  Tracejado: divisão entre dados de identificação e de validação
 \end{frame}
 
 \begin{frame}{Dados - Espectro de Amplitude}
@@ -277,6 +278,37 @@
 \begin{frame}{Comparação - Resposta em Frequência - $H(q)$}
   \centering
   \includegraphics[width=.9\linewidth]{bode_H_AICCv}
+\end{frame}
+
+\begin{frame}{Comparação - Predições}
+  \begin{gather}
+    \hat{y}(t) = L_u(q) \, u(t) + L_y(q) \, y(t)
+    \\
+    L_u(q) = \dfrac{G(q)}{H(q)}
+    \qquad
+    L_y(q) = 1 - \dfrac{1}{H(q)}
+    \end{gather}
+  \centering
+  \includegraphics[width=.9\linewidth]{prediction_AICCv}
+\end{frame}
+
+\begin{frame}{Comparação - Resíduos}
+  \begin{align}
+    \varepsilon(t)
+    &= y(t) - \hat{y}(t)
+    \\
+    &= \dfrac{y(t) - G(q) \Prod u(t)}{H(q)}
+  \end{align}
+  \centering
+  \includegraphics[width=.9\linewidth]{residue_AICCv}
+\end{frame}
+
+\begin{frame}{Comparação - Resíduos - Autocorrelação}
+  \begin{gather}
+    R_{\varepsilon}(\Delta t) = \sum_{t=-N}^{N} \varepsilon(t) \Prod \varepsilon(t + \Delta t)
+  \end{gather}
+  \centering
+  \includegraphics[width=.9\linewidth]{residue_autocorrelation_AICCv}
 \end{frame}
 
 \begin{frame}{Sistema Verdadeiro}
