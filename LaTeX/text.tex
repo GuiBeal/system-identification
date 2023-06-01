@@ -35,7 +35,7 @@
 \begin{document}
 \bstctlcite{IEEEBST:Brazilian}
 
-\title{Identificação de Sistema por Erro de Predição com Modelos Polinomiais}
+\title{Identificação de Sistema por Erro de Predição com Modelos Racionais}
 \author{Guilherme de Paoli Beal
   \\
   {\small Universidade Federal do Rio Grande do Sul
@@ -95,12 +95,12 @@ em que
 $H_0(q)$ é a função de transferência do filtro e
 $e(t)$ é ruído branco.
 
-\subsection{Modelos Polinomiais}
+\subsection{Modelos Racionais}
 
 O modelo busca representar o sistema real $G_0(q)$ expresso em \eqref{eq:system}.
 Em particular, na identificação por erro de predição, o modelo procurar caracterizar também o ruído $\nu(t)$ através da identificação de $H_0(q)$.
 
-Quatro diferentes classes de modelo polinomiais são exploradas neste trabalho:
+Quatro diferentes classes de modelo racionais são exploradas neste trabalho:
 \begin{itemize}
   \item Autorregressivo com Entrada Externa, ou \emph{Autoregressive with Extra Input} (ARX);
   \item Autorregressivo com Média Móvel e Entrada Externa, ou \emph{Autoregressive Moving Average with Extra Input} (ARMAX);
@@ -351,20 +351,48 @@ Isso está em consonância com o fato de que os dados trazem mais informações 
 Por outro lado, a Figura \ref{fig:bode-noise} mostra que o sistema $H(q)$ é mais diverso entre as diferentes identificações.
 % A identificação do ruído não é tão boa quanto a identificação do sistema.
 
+As predições das identificações presentes na Tabela \ref{tab:results} são exibidas na Figura \ref{fig:prediction}.
+Os respectivos erros de predição --- também denominados resíduos --- são mostrados na Figura \ref{fig:residue}.
+Observe que, de forma geral, as predições das várias identificações são próximas entre si.
+
+Finalmente, a Figura \ref{fig:residue-autocorrelation} exibe a autocorrelação dos resíduos.
+Caso um modelo fosse capaz de explicar plenamente a dinâmica do sistema, então os resíduos decorreriam apenas da aleatoriedade do ruído de medição e seriam semelhantes a ruído branco --- o qual é descorrelacionado de si mesmo exceto para atraso nulo.
+A autocorrelação dos resíduos, porém, mostra um valor elevado para atraso nulo --- conforme esperado --- e valores diversos nos demais atrasos, mostrando que o resíduo não se aproxima de ruído branco.
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{prediction_AICCv}
+  \caption{Predições a partir das identificações na Tabela \ref{tab:results}.}
+  \label{fig:prediction}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{residue_AICCv}
+  \caption{Resíduos de predição a partir das identificações na Tabela \ref{tab:results}.}
+  \label{fig:residue}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{residue_autocorrelation_AICCv}
+  \caption{Autocorrelação dos resíduos de predição a partir das identificações na Tabela \ref{tab:results}.}
+  \label{fig:residue-autocorrelation}
+\end{figure}
+
 \subsection{Escolha de Modelos Adequados}
-Através das observações anteriores, procura-se arbitrar classes de modelo razoáveis para representar o sistema efetivo, ainda desconhecido.
+Através das observações anteriores, procura-se escolher classes e ordens de modelo razoáveis para representar o sistema efetivo, ainda desconhecido.
 Os modelos OE são logo descartados devido ao seu desempenho inferior.
 Ademais, o atraso é arbitrado como $n_k = 1$ pois esse valor prevalece nos modelos bem-classificados.
 
 Conforme já citado, o numerador de $H(q)$ parece ser de ordem pequena.
-Em particular, com a prevalência de modelos ARMAX com $n_c = 0$ --- o que equivale a $C(q) = 1$, sem parâmetros --- e de modelos ARX, descarta-se também a classe ARMAX.
-Restam, portanto, modelos ARX e modelos BJ com $n_c = 0$; em ambos, $n_k$ = 1.
+Em particular, com a prevalência de modelos BJ com $n_c = 0$ --- o que equivale a $C(q) = 1$, sem parâmetros --- e de modelos ARX, descarta-se também a classe ARMAX.
+Restam, portanto, modelos ARX e modelos BJ com $n_c = 0$.
 A diferença entre esses dois casos é que o primeiro requer que os denominadores de $G(q)$ e $H(q)$ sejam iguais, enquanto o segundo permite que sejam independentes.
 
 Finalmente, por apresentar melhores classificações gerais com estrutura mais simples, sugere-se a utilização do modelo ARX.
 Pelos resultados, sugere-se uma ordem $n_a$ entre 2 e 3.
-A ordem $n_b$ pode ser escolhida entre 0 e 3.
-Ressalta-se que a arbitração de ordens mais elevadas permite contemplar uma quantidade maior de modelos na classe, ao custo de exigir a identificação de mais parâmetros.
+A ordem $n_b$ pode ser arbitrada entre 0 e 3.
+Ressalta-se que a escolha de ordens mais elevadas permite contemplar uma quantidade maior de modelos na classe, ao custo de exigir a identificação de mais parâmetros.
 Conforme já mencionado, o atraso sugerido é $n_k = 1$.
 
 \subsection{Desempenho do Menor Modelo de Ordem Completa}
@@ -407,29 +435,29 @@ os quais resultam nas funções de transferência
   .
 \end{align}
 
-A Figura \ref{fig:prediction} mostra a previsão da saída, obtida pela aplicação de \eqref{eq:prediction}, a partir do resultado desta identificação, em comparação aos dados de validação.
+A Figura \ref{fig:prediction-complete} mostra a previsão da saída a partir desta identificação, em comparação aos dados de validação.
 Conforme consta nas Tabelas \ref{tab:results-class} e \ref{tab:results}, o erro quadrático médio associado é $\num{5.589}$.
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{y_p_28}
   \caption{Previsão obtida com o menor modelo de ordem completa.}
-  \label{fig:prediction}
+  \label{fig:prediction-complete}
 \end{figure}
 
-A comparação com os sistemas efetivos é realizada pelas respostas em frequência das funções de transferência, as quais são exibidas nas Figuras \ref{fig:bode_system_complete} e \ref{fig:bode_noise_complete}.
+A comparação com os sistemas efetivos é realizada pelas respostas em frequência das funções de transferência, as quais são exibidas nas Figuras \ref{fig:bode-system-complete} e \ref{fig:bode-noise-complete}.
 Observe que a função $G_{28}(q)$ apresenta um ganho estático visivelmente abaixo de $G_0(q)$.
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{bode_G_28}
   \caption{Resposta em frequências de $G(q)$ a partir da identificação com o menor modelo de ordem completa.}
-  \label{fig:bode_system_complete}
+  \label{fig:bode-system-complete}
 \end{figure}
 
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{bode_H_28}
   \caption{Resposta em frequências de $H(q)$ a partir da identificação com o menor modelo de ordem completa.}
-  \label{fig:bode_noise_complete}
+  \label{fig:bode-noise-complete}
 \end{figure}
 
 \section{Conclusões}
